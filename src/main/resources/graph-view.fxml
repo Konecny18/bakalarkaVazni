@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.GraphController" prefWidth="600.0" prefHeight="400.0">
+    <center>
+        <HBox fx:id="chartsBox" spacing="20.0" alignment="CENTER">
+            <children>
+                <VBox alignment="CENTER" spacing="6.0">
+                    <children>
+                        <Label fx:id="lblSimTitle" text="Výsledok simulácie" />
+                        <PieChart fx:id="pieSimulation" prefHeight="300.0" prefWidth="280.0" />
+                    </children>
+                </VBox>
+                <VBox alignment="CENTER" spacing="6.0">
+                    <children>
+                        <Label fx:id="lblTheoryTitle" text="Teoretická hodnota" />
+                        <PieChart fx:id="pieTheory" prefHeight="300.0" prefWidth="280.0" />
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </center>
+    <bottom>
+        <HBox alignment="CENTER" prefHeight="40.0">
+            <children>
+                <Button text="Zavrieť" onAction="#onClose" />
+            </children>
+        </HBox>
+    </bottom>
+</BorderPane>

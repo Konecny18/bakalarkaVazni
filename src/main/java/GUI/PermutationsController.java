@@ -1,16 +1,19 @@
 package GUI;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.Node;
 import javafx.event.ActionEvent;
-import javafx.scene.control.Alert;
 import logic.Strategy;
 import logic.CycleStrategy;
-//import logic.RandomStrategy; // Nezabudni vytvoriť túto triedu
+import logic.RandomStrategy; // pridaná stratégia
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +23,7 @@ public class PermutationsController {
     @FXML private ComboBox<String> cbStrategie;
     @FXML private TextField tfPocetPermutacii;
 
-    private List<Strategy> availableStrategies = new ArrayList<>();
+    private final List<Strategy> availableStrategies = new ArrayList<>();
 
     @FXML
     public void initialize() {
@@ -29,7 +32,7 @@ public class PermutationsController {
 
         // Pridáme obe stratégie pre porovnanie
         availableStrategies.add(new CycleStrategy());
-        //availableStrategies.add(new RandomStrategy());
+        availableStrategies.add(new RandomStrategy());
 
         for (Strategy s : availableStrategies) {
             cbStrategie.getItems().add(s.nazovStrategie());
@@ -91,13 +94,61 @@ public class PermutationsController {
                 vybrana, pocet, pocet / 2, permutations, vsetciUspeliCount, sancaPrežitiaSkupiny, priemernyPocetVaznov
         );
 
-        Alert res = new Alert(Alert.AlertType.INFORMATION, message);
-        res.setHeaderText("Štatistický report simulácie");
-        res.showAndWait();
+        zobrazVysledky(message, sancaPrežitiaSkupiny, vybrana);
     }
 
     @FXML
     public void onCloseButtonClick(ActionEvent event) {
         ((Stage)((Node)event.getSource()).getScene().getWindow()).close();
+    }
+
+    // Toto voláš po skončení výpočtov v metóde spustiSimulaciu()
+    private void zobrazVysledky(String detailnaSprava, double sanca, String nazovStrategie) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Štatistický report simulácie");
+        alert.setHeaderText("Simulácia úspešne dokončená");
+
+        // Tu vložíme tvoj podrobný text
+        alert.setContentText(detailnaSprava);
+
+        // Pridáme vlastné tlačidlá
+        ButtonType btnGraf = new ButtonType("Zobraziť graf");
+        ButtonType btnZavriet = new ButtonType("Zavrieť", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(btnGraf, btnZavriet);
+
+        // Aby sa text v Alerte dal dobre čítať (ak je dlhý), môžeme ho trochu zväčšiť
+        alert.getDialogPane().setMinWidth(400);
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == btnGraf) {
+                otvorGrafickeOkno(sanca, nazovStrategie);
+            }
+        });
+    }
+
+    private void otvorGrafickeOkno(double sanca, String strategia) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/graph-view.fxml"));
+            Parent root = loader.load();
+
+            // Získame controller prislúchajúci k novému oknu
+            GraphController graphCtrl = loader.getController();
+
+            // Odovzdáme dáta priamo cez setter (žiadne globálne premenné)
+            graphCtrl.nastavData(sanca, strategia);
+
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Porovnávací graf");
+            stage.setScene(new Scene(root));
+            // Nastavíme ownera aby sa okno modalne správalo nad aktuálnym oknom
+            if (tfPocetVaznov.getScene() != null) {
+                stage.initOwner(tfPocetVaznov.getScene().getWindow());
+            }
+            stage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

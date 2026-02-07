@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.CategoryAxis?>
+
+<VBox alignment="CENTER" spacing="20.0" prefHeight="700.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.GraphController">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <children>
+        <LineChart fx:id="theoryChart" title="Teoretická pravdepodobnosť prežitia" createSymbols="true">
+            <xAxis><NumberAxis label="Počet väzňov" lowerBound="0" upperBound="100" tickUnit="10" autoRanging="false"/></xAxis>
+            <yAxis><NumberAxis label="Šanca (%)" lowerBound="0" upperBound="100" tickUnit="10" autoRanging="false"/></yAxis>
+        </LineChart>
+
+        <BarChart fx:id="barChart" title="Nameraná úspešnosť (tvoja simulácia)" legendVisible="false">
+            <xAxis><CategoryAxis label="Kategória" /></xAxis>
+            <yAxis><NumberAxis label="Percentá (%)" lowerBound="0" upperBound="100" tickUnit="10" autoRanging="false"/></yAxis>
+        </BarChart>
+
+        <Button text="Zavrieť" onAction="#onClose" prefWidth="100"/>
+    </children>
+</VBox>
