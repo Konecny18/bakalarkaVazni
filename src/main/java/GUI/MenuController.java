@@ -33,6 +33,16 @@ public class MenuController {
             e.printStackTrace();
         }
     }
+    @FXML
+    public void initialize() {
+        // Efekt pre tlačidlo simulácie
+        btnSimulacia.setOnMouseEntered(e -> btnSimulacia.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;"));
+        btnSimulacia.setOnMouseExited(e -> btnSimulacia.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;"));
+
+        // Efekt pre tlačidlo vysvetlenia
+        btnVysvetlenie.setOnMouseEntered(e -> btnVysvetlenie.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;"));
+        btnVysvetlenie.setOnMouseExited(e -> btnVysvetlenie.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;"));
+    }
 
     @FXML
     public void onVysvetlenieButtonClick() {

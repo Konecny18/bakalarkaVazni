@@ -1,142 +1,157 @@
 package GUI;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import logic.CycleStrategy;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
+import logic.CycleStrategy;
+
+import java.util.*;
 
 public class ExplainController {
-    @FXML private GridPane paneKrabice; // V FXML musí byť GridPane
-    @FXML private Label lblInfo;
-    @FXML private Label lblStatus;
+    @FXML private GridPane paneKrabice;
+    @FXML private ComboBox<String> cbStrategieExplain;
+    @FXML private TextArea txtVysvetlenie;
     @FXML private TextArea txtAreaCykly;
+    @FXML private Label lblStatus;
+    @FXML private Label lblInfo;
 
-    private final CycleStrategy strategy = new CycleStrategy();
+    private final CycleStrategy cycleLogic = new CycleStrategy();
     private final Map<Integer, List<Integer>> boxToCycleMap = new HashMap<>();
     private final Map<List<Integer>, Color> cycleColorMap = new HashMap<>();
 
     @FXML
     public void initialize() {
+        cbStrategieExplain.getItems().addAll("Cyklická stratégia", "Náhodná stratégia");
+        cbStrategieExplain.getSelectionModel().select(0);
+        onStrategiaChanged();
+    }
+
+    @FXML
+    public void onStrategiaChanged() {
+        String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
+
+        if ("Cyklická stratégia".equals(vybrana)) {
+            txtVysvetlenie.setText("""
+                    CYKLICKÁ STRATÉGIA:
+
+                    Každý väzeň začne otvorením krabice so svojím číslom. \
+                    Ak v nej nenájde svoj lístok, ide ku krabici s číslom, ktoré práve našiel.
+
+                    Matematika: Skupina uspeje, ak neexistuje cyklus dlhší ako 50. \
+                    Šanca na prežitie je ~31.18%.""");
+        } else {
+            txtVysvetlenie.setText("""
+                    NÁHODNÁ STRATÉGIA:
+
+                    Každý väzeň si vyberie 50 krabíc úplne náhodne. \
+                    Voľby väzňov sú nezávislé, nevzniká žiadna matematická väzba.
+
+                    Matematika: Pravdepodobnosť úspechu je (1/2)^100. \
+                    To je cca 0.0000000000000000000000000000008, teda prakticky nula.""");
+        }
         generujNovuMapu();
     }
 
     @FXML
     public void generujNovuMapu() {
-        // 1. Vyčistenie starých dát
         paneKrabice.getChildren().clear();
         boxToCycleMap.clear();
         cycleColorMap.clear();
         txtAreaCykly.clear();
 
-        // 2. Generovanie dát (Krabice sú fixné pre všetkých väzňov v tomto kole)
-        List<Integer> krabice = strategy.generujKrabice(100);
-        List<List<Integer>> cykly = strategy.najdiVsetkyCykly(krabice);
+        String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
+        List<Integer> krabice = cycleLogic.generujKrabice(100);
+        boolean zlyhanie = false;
 
-        // 3. Spracovanie cyklov a textový výpis
-        StringBuilder sb = new StringBuilder("--- DETAILNÝ ZOZNAM CYKLOV ---\n");
-        boolean skupinaPrezila = true;
-        Random rnd = new Random();
+        if ("Cyklická stratégia".equals(vybrana)) {
+            // Výpočet cyklov len pre cyklickú stratégiu
+            List<List<Integer>> cykly = cycleLogic.najdiVsetkyCykly(krabice);
+            StringBuilder sb = new StringBuilder("LOGIKA CYKLOV:\n");
+            Random rnd = new Random();
 
-        for (int i = 0; i < cykly.size(); i++) {
-            List<Integer> cyklus = cykly.get(i);
+            for (List<Integer> cyklus : cykly) {
+                Color farba = Color.hsb(rnd.nextInt(360), 0.6, 0.9);
+                cycleColorMap.put(cyklus, farba);
+                if (cyklus.size() > 50) zlyhanie = true;
 
-            // Každý cyklus dostane unikátnu farbu
-            Color farba = Color.hsb(rnd.nextInt(360), 0.5, 0.9);
-            cycleColorMap.put(cyklus, farba);
-
-            if (cyklus.size() > 50) {
-                skupinaPrezila = false;
+                for (Integer i : cyklus) boxToCycleMap.put(i, cyklus);
+                sb.append("Dĺžka ").append(cyklus.size()).append(": ").append(cyklus).append("\n");
             }
+            txtAreaCykly.setText(sb.toString());
 
-            for (Integer boxIdx : cyklus) {
-                boxToCycleMap.put(boxIdx, cyklus);
+            if (zlyhanie) {
+                lblStatus.setText("STATUS: SKUPINA BY ZOMRELA (Cyklus > 50)");
+                lblStatus.setTextFill(Color.RED);
+            } else {
+                lblStatus.setText("STATUS: SKUPINA BY PREŽILA (Všetky cykly ≤ 50)");
+                lblStatus.setTextFill(Color.GREEN);
             }
-
-            sb.append(String.format("Cyklus %d (Dĺžka: %d): ", i + 1, cyklus.size()));
-            sb.append(formatujCyklus(cyklus));
-            sb.append("\n\n");
-        }
-        txtAreaCykly.setText(sb.toString());
-
-        // 4. Vykreslenie 100 krabíc do mriežky 10x10
-        for (int i = 0; i < 100; i++) {
-            int stlpec = i % 10;
-            int riadok = i / 10;
-
-            StackPane vizualnaKrabica = vytvorVizuálnuKrabicu(i, krabice.get(i));
-
-            // Pridanie do GridPane na konkrétne súradnice
-            paneKrabice.add(vizualnaKrabica, stlpec, riadok);
-        }
-
-        // 5. Status bar
-        if (skupinaPrezila) {
-            lblStatus.setText("STATUS: SKUPINA PREŽILA! (Všetky cykly ≤ 50)");
-            lblStatus.setTextFill(Color.GREEN);
         } else {
-            lblStatus.setText("STATUS: SKUPINA ZOMRELA! (Existuje cyklus > 50)");
+            // Náhodná stratégia - žiadne cykly, fixné zlyhanie
+            txtAreaCykly.setText("V náhodnej stratégii väzni nesledujú cykly.\nKaždý pokus je izolovaný.");
+            lblStatus.setText("STATUS: SKUPINA BY ZOMRELA (Pravdepodobnosť ~0%)");
             lblStatus.setTextFill(Color.RED);
         }
-    }
 
-    private String formatujCyklus(List<Integer> cyklus) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < cyklus.size(); i++) {
-            sb.append(cyklus.get(i));
-            if (i < cyklus.size() - 1) sb.append(" → ");
+        // Vykreslenie mriežky
+        for (int i = 0; i < 100; i++) {
+            paneKrabice.add(vytvorKrabicu(i, krabice.get(i), vybrana), i % 10, i / 10);
         }
-        sb.append("]");
-        return sb.toString();
     }
 
-    private StackPane vytvorVizuálnuKrabicu(int index, int obsah) {
+    private StackPane vytvorKrabicu(int index, int obsah, String strategia) {
         StackPane stack = new StackPane();
         List<Integer> cyklus = boxToCycleMap.get(index);
-        Color farbaCyklu = cycleColorMap.get(cyklus);
+
+        // Tvoj responzívny binding veľkosti
+        DoubleBinding sizeBinding = Bindings.createDoubleBinding(() -> {
+            double cellW = paneKrabice.getWidth() / 10.0;
+            double cellH = paneKrabice.getHeight() / 10.0;
+            double s = Math.min(cellW, cellH) * 0.75;
+            return Math.max(24.0, Math.min(80.0, s));
+        }, paneKrabice.widthProperty(), paneKrabice.heightProperty());
 
         Rectangle rect = new Rectangle();
-
-        // Dynamické prispôsobenie veľkosti mriežke
-        // Použijeme spoločné viazanie aby boli štvorce skutočne štvorcové a rástli trochu menej pri fullscreen
-        DoubleBinding sizeBinding = Bindings.createDoubleBinding(
-                () -> Math.min(paneKrabice.getWidth() / 11.5, paneKrabice.getHeight() / 11.5),
-                paneKrabice.widthProperty(), paneKrabice.heightProperty()
-        );
         rect.widthProperty().bind(sizeBinding);
         rect.heightProperty().bind(sizeBinding);
 
-        rect.setFill(farbaCyklu);
+        // Farbenie podľa stratégie
+        if ("Cyklická stratégia".equals(strategia) && cyklus != null) {
+            rect.setFill(cycleColorMap.get(cyklus));
+        } else {
+            rect.setFill(Color.LIGHTSTEELBLUE); // Neutrálna farba pre náhodnú stratégiu
+        }
+
         rect.setStroke(Color.BLACK);
         rect.setArcWidth(10);
         rect.setArcHeight(10);
 
-        Text txt = new Text(String.valueOf(index));
-        txt.setStyle("-fx-font-weight: bold;");
+        Text t = new Text(String.valueOf(index));
+        t.styleProperty().bind(Bindings.createStringBinding(() -> {
+            int fontPx = Math.max(10, (int) (sizeBinding.get() / 2.8));
+            return "-fx-font-size: " + fontPx + "px; -fx-font-weight: bold;";
+        }, sizeBinding));
 
-        stack.getChildren().addAll(rect, txt);
+        stack.getChildren().addAll(rect, t);
 
         stack.setOnMouseClicked(e -> {
-            lblInfo.setText(String.format("Krabica č. %d obsahuje lístok %d. Cyklus má dĺžku %d.",
-                    index, obsah, cyklus.size()));
+            if ("Cyklická stratégia".equals(strategia) && cyklus != null) {
+                lblInfo.setText("Krabica " + index + " obsahuje lístok " + obsah + ". Dĺžka cyklu: " + cyklus.size());
+            } else {
+                lblInfo.setText("Krabica " + index + " obsahuje lístok " + obsah + ". (Náhodný pokus)");
+            }
         });
 
         return stack;
     }
 
-    @FXML
-    public void onClose(javafx.event.ActionEvent event) {
+    @FXML public void onClose(javafx.event.ActionEvent event) {
         ((javafx.stage.Stage)((javafx.scene.Node)event.getSource()).getScene().getWindow()).close();
     }
 }

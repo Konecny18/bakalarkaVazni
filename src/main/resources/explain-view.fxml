@@ -3,26 +3,30 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<?import javafx.scene.chart.BarChart?>
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.chart.CategoryAxis?>
-
-<VBox alignment="CENTER" spacing="20.0" prefHeight="700.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.GraphController">
+<HBox spacing="15.0" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.ExplainController">
     <padding>
-        <Insets top="10" right="10" bottom="10" left="10"/>
+        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
     </padding>
-    <children>
-        <LineChart fx:id="theoryChart" title="Teoretická pravdepodobnosť prežitia" createSymbols="true">
-            <xAxis><NumberAxis label="Počet väzňov" lowerBound="0" upperBound="100" tickUnit="10" autoRanging="false"/></xAxis>
-            <yAxis><NumberAxis label="Šanca (%)" lowerBound="0" upperBound="100" tickUnit="10" autoRanging="false"/></yAxis>
-        </LineChart>
+    <VBox spacing="10.0" prefWidth="400.0">
+        <Label text="Vyberte stratégiu pre vysvetlenie:" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="cbStrategieExplain" onAction="#onStrategiaChanged" prefWidth="300.0"/>
 
-        <BarChart fx:id="barChart" title="Nameraná úspešnosť (tvoja simulácia)" legendVisible="false">
-            <xAxis><CategoryAxis label="Kategória" /></xAxis>
-            <yAxis><NumberAxis label="Percentá (%)" lowerBound="0" upperBound="100" tickUnit="10" autoRanging="false"/></yAxis>
-        </BarChart>
+        <Label text="Teoretické vysvetlenie:" style="-fx-font-weight: bold;"/>
+        <TextArea fx:id="txtVysvetlenie" editable="false" wrapText="true" VBox.vgrow="ALWAYS"/>
 
-        <Button text="Zavrieť" onAction="#onClose" prefWidth="100"/>
-    </children>
-</VBox>
+        <Label text="Zoznam cyklov v aktuálnej permutácii:" style="-fx-font-weight: bold;"/>
+        <TextArea fx:id="txtAreaCykly" editable="false" prefHeight="150.0"/>
+
+        <Button text="Generovať novú permutáciu" onAction="#generujNovuMapu" maxWidth="Infinity"/>
+    </VBox>
+
+    <VBox spacing="10.0" alignment="CENTER" HBox.hgrow="ALWAYS">
+        <Label fx:id="lblStatus" text="Status" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+        <StackPane VBox.vgrow="ALWAYS">
+            <GridPane fx:id="paneKrabice" alignment="CENTER" hgap="5.0" vgap="5.0"/>
+        </StackPane>
+        <Label fx:id="lblInfo" text="Kliknite na krabicu pre detail"/>
+        <Button text="Zavrieť" onAction="#onClose"/>
+    </VBox>
+</HBox>

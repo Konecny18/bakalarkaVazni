@@ -7,24 +7,34 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.StackPane?>
 
+<AnchorPane prefHeight="500.0" prefWidth="700.0" style="-fx-background-color: #f0f2f5;"
+            xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.MenuController">
+   <StackPane AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+              AnchorPane.rightAnchor="0.0">
+      <VBox alignment="CENTER" spacing="30.0"
+            style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);"
+            maxWidth="450.0" maxHeight="350.0">
+         <padding>
+            <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
+         </padding>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="GUI.MenuController">
-   <children>
-      <StackPane AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-         <children>
-            <VBox alignment="CENTER" spacing="20.0">
-               <padding>
-                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-               </padding>
-               <Label alignment="TOP_CENTER" style="-fx-font-size: 24px; -fx-font-weight: bold;"
-                      text="Simulácia problému 100 väzňov"/>
-               <Button fx:id="btnSimulacia" mnemonicParsing="false" onAction="#onSimulaciaButtonClick"
-                       text="Spustiť simuláciu" maxWidth="220.0"/>
-               <Button fx:id="btnVysvetlenie" mnemonicParsing="false" onAction="#onVysvetlenieButtonClick"
-                       text="Vysvetlenie algoritmu" maxWidth="220.0"/>
-            </VBox>
-         </children>
-      </StackPane>
-   </children>
+         <VBox alignment="CENTER" spacing="5.0">
+            <Label style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"
+                   text="100 Prisoners Problem"/>
+            <Label style="-fx-font-size: 14px; -fx-text-fill: #7f8c8d;" text="Matematická simulácia a vizualizácia"/>
+         </VBox>
+
+         <VBox spacing="15.0" alignment="CENTER">
+            <Button fx:id="btnSimulacia" onAction="#onSimulaciaButtonClick" prefHeight="50.0" prefWidth="300.0"
+                    style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;"
+                    text="Spustiť simuláciu"/>
+
+            <Button fx:id="btnVysvetlenie" onAction="#onVysvetlenieButtonClick" prefHeight="50.0" prefWidth="300.0"
+                    style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;"
+                    text="Vysvetlenie algoritmu"/>
+         </VBox>
+
+         <Label style="-fx-font-size: 11px; -fx-text-fill: #bdc3c7;" text="Bakalárska práca © 2026"/>
+      </VBox>
+   </StackPane>
 </AnchorPane>
