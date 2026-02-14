@@ -5,5 +5,5 @@ public interface Strategy {
     String nazovStrategie();
 
     // Hlavná simulácia, vráti počet úspešných väzňov
-    int pocitaj(int pocetVaznov, int pocetKrabic);
+    int pocitaj(int pocetVaznov, int maxPokusov);
 }

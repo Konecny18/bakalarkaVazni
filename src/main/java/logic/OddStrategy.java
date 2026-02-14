@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RandomStrategy implements Strategy {
+public class OddStrategy implements Strategy {
     @Override
     public String nazovStrategie() {
-        return "Náhodná stratégia";
+        return "Stratégia nepárnych čísel";
     }
 
     @Override
@@ -17,17 +17,19 @@ public class RandomStrategy implements Strategy {
         Collections.shuffle(krabice);
 
         int uspesniVazni = 0;
-        for (int vazonId = 0; vazonId < pocetVaznov; vazonId++) {
-            // Každý väzeň si vytvorí vlastný zoznam náhodných indexov krabíc
-            List<Integer> volby = new ArrayList<>();
-            for (int i = 0; i < pocetVaznov; i++) volby.add(i);
-            Collections.shuffle(volby);
 
-            for (int p = 0; p < maxPokusov; p++) {
-                if (krabice.get(volby.get(p)) == vazonId) {
-                    uspesniVazni++;
-                    break;
+        for (int vazonId = 0; vazonId < pocetVaznov; vazonId++) {
+            int otvoreneKrabice = 0;
+
+            for (int i = 0; i < pocetVaznov; i++) {
+                if (i % 2 != 0) { // Podmienka pre nepárne indexy (1, 3, 5...)
+                    if (krabice.get(i) == vazonId) {
+                        uspesniVazni++;
+                        break;
+                    }
+                    otvoreneKrabice++;
                 }
+                if (otvoreneKrabice >= maxPokusov) break;
             }
         }
         return uspesniVazni;

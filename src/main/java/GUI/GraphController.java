@@ -68,38 +68,48 @@ public class GraphController {
         double successSim = clampPercent(nameranaSancaPercent);
         double failSim = 100.0 - successSim;
 
+        // Aktualizácia nadpisu, aby sme vedeli, čo porovnávame
+        if (lblSimTitle != null) {
+            lblSimTitle.setText("Simulácia: " + nazovStrategie);
+            lblSimTitle.setFont(Font.font("System", FontWeight.BOLD, 12));
+        }
+
         // 1. Nastavenie dát simulácie
         pieSimulation.getData().clear();
-        PieChart.Data successSlice = new PieChart.Data(String.format("Uspech: %.2f%%", successSim), successSim);
-        PieChart.Data failSlice = new PieChart.Data(String.format("Neuspech: %.2f%%", failSim), failSim);
+        PieChart.Data successSlice = new PieChart.Data(String.format("Úspech: %.2f%%", successSim), successSim);
+        PieChart.Data failSlice = new PieChart.Data(String.format("Neúspech: %.2f%%", failSim), failSim);
         pieSimulation.getData().addAll(successSlice, failSlice);
 
-        // 2. Teoretická hodnota
-        double theoryPercent = nazovStrategie != null && nazovStrategie.toLowerCase().contains("cykl") ? 31.18 : 0.0;
+        // 2. Dynamická Teoretická hodnota
+        double theoryPercent = 0.0;
+        // Len cyklická stratégia má teóriu ~31.18%, ostatné (náhodná, párna, nepárna) majú prakticky 0%
+        if (nazovStrategie != null && nazovStrategie.toLowerCase().contains("cykl")) {
+            theoryPercent = 31.18;
+        }
+
         double theoryFail = 100.0 - theoryPercent;
 
         pieTheory.getData().clear();
-        PieChart.Data tSuccess = new PieChart.Data(String.format("Uspech: %.2f%%", theoryPercent), theoryPercent);
-        PieChart.Data tFail = new PieChart.Data(String.format("Neuspech: %.2f%%", theoryFail), theoryFail);
+        PieChart.Data tSuccess = new PieChart.Data(String.format("Úspech: %.2f%%", theoryPercent), theoryPercent);
+        PieChart.Data tFail = new PieChart.Data(String.format("Neúspech: %.2f%%", theoryFail), theoryFail);
         pieTheory.getData().addAll(tSuccess, tFail);
 
-        // 3. Farbenie samotných koláčov
-        setSliceColorWhenReady(successSlice, "#2ecc71"); // Zelená
-        setSliceColorWhenReady(failSlice, "#e74c3c");    // Červená
+        // 3. Farbenie - použijeme tvoje metódy
+        setSliceColorWhenReady(successSlice, "#2ecc71");
+        setSliceColorWhenReady(failSlice, "#e74c3c");
         setSliceColorWhenReady(tSuccess, "#2ecc71");
         setSliceColorWhenReady(tFail, "#e74c3c");
 
-        // 4. OPRAVA LEGENDY: Prefarbenie krúžkov v popise
+        // 4. Oprava legendy a tooltipy zostávajú rovnaké
         Platform.runLater(() -> {
             prefarbiLegendu(pieSimulation);
             prefarbiLegendu(pieTheory);
         });
 
-        // 5. Tooltipy
         attachTooltipWhenReady(successSlice, String.format("%.2f%% úspech", successSim));
         attachTooltipWhenReady(failSlice, String.format("%.2f%% neúspech", failSim));
-        attachTooltipWhenReady(tSuccess, String.format("%.2f%% úspech (teória)", theoryPercent));
-        attachTooltipWhenReady(tFail, String.format("%.2f%% neúspech (teória)", theoryFail));
+        attachTooltipWhenReady(tSuccess, String.format("%.2f%% teória", theoryPercent));
+        attachTooltipWhenReady(tFail, String.format("%.2f%% teória zlyhania", theoryFail));
     }
 
     private void prefarbiLegendu(PieChart chart) {

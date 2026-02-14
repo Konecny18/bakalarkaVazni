@@ -7,10 +7,9 @@ import java.util.List;
 public class CycleStrategy implements Strategy {
     @Override
     public String nazovStrategie() {
-        return "Cyklicka strategia";
+        return "Cyklická stratégia";
     }
 
-    // Pomocná metóda na vytvorenie premiešaných krabíc
     public List<Integer> generujKrabice(int pocetKrabic) {
         List<Integer> krabice = new ArrayList<>();
         for (int i = 0; i < pocetKrabic; i++) {
@@ -21,15 +20,14 @@ public class CycleStrategy implements Strategy {
     }
 
     @Override
-    public int pocitaj(int pocetVaznov, int pocetKrabic) {
-        List<Integer> krabice = generujKrabice(pocetKrabic);
-        return simulujSExistujucimiKrabicami(pocetVaznov, krabice);
+    public int pocitaj(int pocetVaznov, int maxPokusov) {
+        // Počet krabíc musí byť VŽDY rovnaký ako počet väzňov
+        List<Integer> krabice = generujKrabice(pocetVaznov);
+        return simulujSExistujucimiKrabicami(pocetVaznov, krabice, maxPokusov);
     }
 
-    // Táto metóda je dôležitá, aby sme mohli simuláciu spustiť nad KONKRÉTNYM rozložením
-    public int simulujSExistujucimiKrabicami(int pocetVaznov, List<Integer> krabice) {
+    public int simulujSExistujucimiKrabicami(int pocetVaznov, List<Integer> krabice, int maxPokusov) {
         int uspesniVazni = 0;
-        int maxPokusov = krabice.size() / 2;
 
         for (int vazonId = 0; vazonId < pocetVaznov; vazonId++) {
             int aktualnaKrabica = vazonId;
@@ -48,7 +46,6 @@ public class CycleStrategy implements Strategy {
         return uspesniVazni;
     }
 
-    // Metóda pre GUI, ktorá rozloží krabice na cykly
     public List<List<Integer>> najdiVsetkyCykly(List<Integer> krabice) {
         int pocetKrabic = krabice.size();
         List<List<Integer>> vsetkyCykly = new ArrayList<>();
