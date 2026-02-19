@@ -29,13 +29,13 @@ public class CycleStrategy implements Strategy {
     public int simulujSExistujucimiKrabicami(int pocetVaznov, List<Integer> krabice, int maxPokusov) {
         int uspesniVazni = 0;
 
-        for (int vazonId = 0; vazonId < pocetVaznov; vazonId++) {
-            int aktualnaKrabica = vazonId;
+        for (int vezenID = 0; vezenID < pocetVaznov; vezenID++) {
+            int aktualnaKrabica = vezenID;
             boolean nasielSvojeCislo = false;
 
             for (int pokus = 0; pokus < maxPokusov; pokus++) {
                 int cisloVKrabici = krabice.get(aktualnaKrabica);
-                if (cisloVKrabici == vazonId) {
+                if (cisloVKrabici == vezenID) {
                     nasielSvojeCislo = true;
                     break;
                 }
