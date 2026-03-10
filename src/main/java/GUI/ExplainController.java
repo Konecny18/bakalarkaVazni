@@ -31,7 +31,8 @@ public class ExplainController {
                 "Cyklická stratégia",
                 "Náhodná stratégia",
                 "Stratégia párnych čísel",
-                "Stratégia nepárnych čísel"
+                "Stratégia nepárnych čísel",
+                "Spoločné vylúčenie (prvých 10)"
         );
         cbStrategieExplain.getSelectionModel().select(0);
         onStrategiaChanged();
@@ -41,18 +42,20 @@ public class ExplainController {
     public void onStrategiaChanged() {
         String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
 
-        if ("Cyklická stratégia".equals(vybrana)) {
-            txtVysvetlenie.setText("CYKLICKÁ STRATÉGIA:\nVäzni sledujú čísla v krabiciach ako smerovníky (cykly).");
-        } else if ("Náhodná stratégia".equals(vybrana)) {
-            txtVysvetlenie.setText("NÁHODNÁ STRATÉGIA:\nKaždý si vyberá 50 náhodných krabíc bez akejkoľvek dohody.");
-        } else if ("Stratégia párnych čísel".equals(vybrana)) {
-            txtVysvetlenie.setText("STRATÉGIA PÁRNYCH ČÍSEL:\n" +
-                    "Väzni sa dohodli, že budú otvárať len krabice na párnych pozíciách (0, 2, 4...).\n\n" +
-                    "Dopad: Ak je lístok v nepárnej krabici, väzeň ho nikdy nenájde.");
-        } else if ("Stratégia nepárnych čísel".equals(vybrana)) {
-            txtVysvetlenie.setText("STRATÉGIA NEPÁRNYCH ČÍSEL:\n" +
-                    "Väzni otvárajú len krabice na nepárnych indexoch (1, 3, 5...).\n\n" +
-                    "Dopad: Ak je lístok v párnej krabici, väzeň ho nemá šancu nájsť.");
+        if (vybrana.contains("Cyklická")) {
+            txtVysvetlenie.setText("CYKLICKÁ STRATÉGIA:\nVäzni využívajú matematiku permutácií. " +
+                    "Každý začne krabicou so svojím číslom. Lístok vo vnútri ho pošle na ďalšiu adresu.\n\n" +
+                    "VÝSLEDOK: Skupina prežije, ak v miestnosti nie je cyklus dlhší ako 50.");
+        } else if (vybrana.contains("Náhodná")) {
+            txtVysvetlenie.setText("NÁHODNÁ STRATÉGIA:\nKaždý väzeň háda naslepo. Voľby sú nezávislé.\n\n" +
+                    "VÝSLEDOK: Šanca na prežitie je (1/2)^100, čo je prakticky nemožné.");
+        } else if (vybrana.contains("vylúčenie")) {
+            txtVysvetlenie.setText("SPOLOČNÉ VYLÚČENIE:\nVäzni ignorujú tmavošedé krabice (0-9).\n\n" +
+                    "KRITICKÁ CHYBA: Ak je lístok väzňa č. 5 v krabici č. 5 (ktorú nikto neotvorí), všetci zomrú. " +
+                    "Šanca, že v 10 krabiciach nebude ani jedno dôležité číslo, je takmer nulová.");
+        } else {
+            txtVysvetlenie.setText("DETERMINISTICKÉ VOĽBY (Párne/Nepárne):\nVäzni si delia priestor.\n\n" +
+                    "CHYBA: Ak sa lístok nachádza v 'zakázanej' polovici, väzeň ho nikdy nenájde.");
         }
         generujNovuMapu();
     }
@@ -66,35 +69,26 @@ public class ExplainController {
 
         String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
         List<Integer> krabice = cycleLogic.generujKrabice(100);
+
+        // Pomocná logika pre zobrazenie úspechu v GUI
         boolean zlyhanie = false;
 
-        if ("Cyklická stratégia".equals(vybrana)) {
+        if (vybrana.contains("Cyklická")) {
             List<List<Integer>> cykly = cycleLogic.najdiVsetkyCykly(krabice);
-            StringBuilder sb = new StringBuilder("LOGIKA CYKLOV:\n");
             Random rnd = new Random();
             for (List<Integer> cyklus : cykly) {
-                Color farba = Color.hsb(rnd.nextInt(360), 0.6, 0.9);
+                Color farba = Color.hsb(rnd.nextInt(360), 0.5, 0.9);
                 cycleColorMap.put(cyklus, farba);
                 if (cyklus.size() > 50) zlyhanie = true;
                 for (Integer i : cyklus) boxToCycleMap.put(i, cyklus);
-                sb.append("Dĺžka ").append(cyklus.size()).append(": ").append(cyklus).append("\n");
+                txtAreaCykly.appendText("Dĺžka " + cyklus.size() + ": " + cyklus + "\n");
             }
-            txtAreaCykly.setText(sb.toString());
-            lblStatus.setText(zlyhanie ? "SKUPINA ZOMRELA (Cyklus > 50)" : "SKUPINA PREŽILA");
+            lblStatus.setText(zlyhanie ? "SKUPINA ZOMRELA (Príliš dlhý cyklus)" : "SKUPINA PREŽILA");
             lblStatus.setTextFill(zlyhanie ? Color.RED : Color.GREEN);
-
-        } else if ("Stratégia párnych čísel".equals(vybrana)) {
-            txtAreaCykly.setText("Zvýraznené sú PÁRNE indexy (0, 2, 4...).\nNepárne sú ignorované.");
-            lblStatus.setText("SKUPINA ZOMRELA (Šanca 0%)");
-            lblStatus.setTextFill(Color.RED);
-        } else if ("Stratégia nepárnych čísel".equals(vybrana)) {
-            txtAreaCykly.setText("Zvýraznené sú NEPÁRNE indexy (1, 3, 5...).\nPárne sú ignorované.");
-            lblStatus.setText("SKUPINA ZOMRELA (Šanca 0%)");
-            lblStatus.setTextFill(Color.RED);
         } else {
-            txtAreaCykly.setText("V náhodnej stratégii neexistuje vizuálna väzba.");
-            lblStatus.setText("SKUPINA ZOMRELA (Náhodný výber)");
+            lblStatus.setText("VÝSLEDOK: ZLYHANIE (Šanca ~0%)");
             lblStatus.setTextFill(Color.RED);
+            if (vybrana.contains("vylúčenie")) txtAreaCykly.setText("Tmavé krabice sú ignorované.");
         }
 
         for (int i = 0; i < 100; i++) {
@@ -105,46 +99,36 @@ public class ExplainController {
     private StackPane vytvorKrabicu(int index, int obsah, String strategia) {
         StackPane stack = new StackPane();
 
+        // Dynamická veľkosť krabice podľa okna
         DoubleBinding sizeBinding = Bindings.createDoubleBinding(() -> {
-            double cellW = paneKrabice.getWidth() / 10.0;
-            double cellH = paneKrabice.getHeight() / 10.0;
-            return Math.max(24.0, Math.min(80.0, Math.min(cellW, cellH) * 0.75));
+            return Math.min(45.0, Math.min(paneKrabice.getWidth()/11, paneKrabice.getHeight()/11));
         }, paneKrabice.widthProperty(), paneKrabice.heightProperty());
 
         Rectangle rect = new Rectangle();
         rect.widthProperty().bind(sizeBinding);
         rect.heightProperty().bind(sizeBinding);
-        rect.setArcWidth(10); rect.setArcHeight(10);
-        rect.setStroke(Color.BLACK);
+        rect.setArcWidth(8); rect.setArcHeight(8);
+        rect.setStroke(Color.web("#bdc3c7"));
 
-        // LOGIKA FARBENIA PODĽA STRATÉGIE
-        if ("Cyklická stratégia".equals(strategia)) {
+        // FARBENIE PODĽA VYBRANEJ STRATÉGIE
+        if (strategia.contains("Cyklická")) {
             List<Integer> cyklus = boxToCycleMap.get(index);
-            rect.setFill(cyklus != null ? cycleColorMap.get(cyklus) : Color.LIGHTGRAY);
-        } else if ("Stratégia párnych čísel".equals(strategia)) {
-            if (index % 2 == 0) {
-                rect.setFill(Color.web("#2ecc71")); // Zelená pre párne
-            } else {
-                rect.setFill(Color.web("#ecf0f1"));
-                rect.setOpacity(0.5);
-            }
-        } else if ("Stratégia nepárnych čísel".equals(strategia)) {
-            if (index % 2 != 0) {
-                rect.setFill(Color.web("#e67e22")); // Oranžová pre nepárne
-            } else {
-                rect.setFill(Color.web("#ecf0f1"));
-                rect.setOpacity(0.5);
-            }
+            rect.setFill(cycleColorMap.getOrDefault(cyklus, Color.LIGHTGRAY));
+        } else if (strategia.contains("vylúčenie")) {
+            rect.setFill(index < 10 ? Color.web("#34495e") : Color.web("#3498db"));
+        } else if (strategia.contains("párnych")) {
+            rect.setFill(index % 2 == 0 ? Color.web("#2ecc71") : Color.web("#ecf0f1"));
+        } else if (strategia.contains("nepárnych")) {
+            rect.setFill(index % 2 != 0 ? Color.web("#e67e22") : Color.web("#ecf0f1"));
         } else {
-            rect.setFill(Color.LIGHTSTEELBLUE);
+            rect.setFill(Color.web("#ecf0f1"));
         }
 
         Text t = new Text(String.valueOf(index));
-        t.styleProperty().bind(Bindings.createStringBinding(() ->
-                "-fx-font-size: " + Math.max(10, (int)(sizeBinding.get()/2.8)) + "px; -fx-font-weight: bold;", sizeBinding));
+        t.setFill(index < 10 && strategia.contains("vylúčenie") ? Color.WHITE : Color.BLACK);
 
         stack.getChildren().addAll(rect, t);
-        stack.setOnMouseClicked(e -> lblInfo.setText("Krabica " + index + " obsahuje lístok " + obsah));
+        stack.setOnMouseClicked(e -> lblInfo.setText("Krabica č. " + index + " obsahuje lístok väzňa č. " + obsah));
 
         return stack;
     }

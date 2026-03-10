@@ -6,4 +6,10 @@ public interface Strategy {
 
     // Hlavná simulácia, vráti počet úspešných väzňov
     int pocitaj(int pocetVaznov, int maxPokusov);
+
+    default int getNajdlhsiCyklusPoslednejSimulacie() { return 0; }
+
+    default int getMaxUspesnychVHistorii() { return 0; }
+
+    default void resetStats() {}
 }

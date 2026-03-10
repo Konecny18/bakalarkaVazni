@@ -5,9 +5,29 @@ import java.util.Collections;
 import java.util.List;
 
 public class CycleStrategy implements Strategy {
+
+    private int poslednyMaxCyklus = 0;
+    private int maxUspesnychVHistorii = 0; // Premenná pre sledovanie rekordu v neúspešných pokusoch
+
     @Override
     public String nazovStrategie() {
         return "Cyklická stratégia";
+    }
+
+    @Override
+    public void resetStats() {
+        this.poslednyMaxCyklus = 0;
+        this.maxUspesnychVHistorii = 0;
+    }
+
+    @Override
+    public int getMaxUspesnychVHistorii() {
+        return maxUspesnychVHistorii;
+    }
+
+    @Override
+    public int getNajdlhsiCyklusPoslednejSimulacie() {
+        return poslednyMaxCyklus;
     }
 
     public List<Integer> generujKrabice(int pocetKrabic) {
@@ -20,32 +40,41 @@ public class CycleStrategy implements Strategy {
     }
 
     @Override
-    public int pocitaj(int pocetVaznov, int maxPokusov) {
-        // Počet krabíc musí byť VŽDY rovnaký ako počet väzňov
+    public int pocitaj(int pocetVaznov, int limitPokusov) {
         List<Integer> krabice = generujKrabice(pocetVaznov);
-        return simulujSExistujucimiKrabicami(pocetVaznov, krabice, maxPokusov);
-    }
+        List<List<Integer>> cykly = najdiVsetkyCykly(krabice);
 
-    public int simulujSExistujucimiKrabicami(int pocetVaznov, List<Integer> krabice, int maxPokusov) {
+        int maxDlzkaCyklu = 0;
         int uspesniVazni = 0;
 
-        for (int vezenID = 0; vezenID < pocetVaznov; vezenID++) {
-            int aktualnaKrabica = vezenID;
-            boolean nasielSvojeCislo = false;
+        for (List<Integer> cyklus : cykly) {
+            int dlzka = cyklus.size();
+            if (dlzka > maxDlzkaCyklu) maxDlzkaCyklu = dlzka;
 
-            for (int pokus = 0; pokus < maxPokusov; pokus++) {
-                int cisloVKrabici = krabice.get(aktualnaKrabica);
-                if (cisloVKrabici == vezenID) {
-                    nasielSvojeCislo = true;
-                    break;
-                }
-                aktualnaKrabica = cisloVKrabici;
+            // V cyklickej stratégii platí: ak je dĺžka cyklu pod limitom,
+            // všetci väzni v tomto cykle nájdu svoje číslo.
+            if (dlzka <= limitPokusov) {
+                uspesniVazni += dlzka;
             }
-            if (nasielSvojeCislo) uspesniVazni++;
         }
+
+        this.poslednyMaxCyklus = maxDlzkaCyklu;
+
+        // Sledovanie rekordu: ak niekto zlyhal (skupina neprežila),
+        // porovnáme počet úspešných s naším doterajším rekordom.
+        if (uspesniVazni < pocetVaznov) {
+            if (uspesniVazni > maxUspesnychVHistorii) {
+                maxUspesnychVHistorii = uspesniVazni;
+            }
+        }
+
         return uspesniVazni;
     }
 
+    /**
+     * Pomocná metóda na rozklad permutácie (krabíc) na cykly.
+     * Matematicky: Permutácia sa dá vždy jednoznačne rozložiť na disjunktné cykly.
+     */
     public List<List<Integer>> najdiVsetkyCykly(List<Integer> krabice) {
         int pocetKrabic = krabice.size();
         List<List<Integer>> vsetkyCykly = new ArrayList<>();
