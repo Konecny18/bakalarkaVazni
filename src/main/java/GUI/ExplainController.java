@@ -25,92 +25,140 @@ public class ExplainController {
     private final Map<Integer, List<Integer>> boxToCycleMap = new HashMap<>();
     private final Map<List<Integer>, Color> cycleColorMap = new HashMap<>();
 
+    private List<Integer> poslednaMapaKrabic;
+
     @FXML
     public void initialize() {
         cbStrategieExplain.getItems().addAll(
                 "Cyklická stratégia",
                 "Náhodná stratégia",
+                "Hybridná stratégia", // ✅ NEW
                 "Stratégia párnych čísel",
                 "Stratégia nepárnych čísel",
                 "Spoločné vylúčenie (prvých 10)"
         );
         cbStrategieExplain.getSelectionModel().select(0);
+
+        paneKrabice.widthProperty().addListener((obs, oldVal, newVal) -> prekresliMriezku());
+        paneKrabice.heightProperty().addListener((obs, oldVal, newVal) -> prekresliMriezku());
+
         onStrategiaChanged();
     }
 
     @FXML
     public void onStrategiaChanged() {
         String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
+        StringBuilder sb = new StringBuilder();
 
         if (vybrana.contains("Cyklická")) {
-            txtVysvetlenie.setText("CYKLICKÁ STRATÉGIA:\nVäzni využívajú matematiku permutácií. " +
-                    "Každý začne krabicou so svojím číslom. Lístok vo vnútri ho pošle na ďalšiu adresu.\n\n" +
-                    "VÝSLEDOK: Skupina prežije, ak v miestnosti nie je cyklus dlhší ako 50.");
-        } else if (vybrana.contains("Náhodná")) {
-            txtVysvetlenie.setText("NÁHODNÁ STRATÉGIA:\nKaždý väzeň háda naslepo. Voľby sú nezávislé.\n\n" +
-                    "VÝSLEDOK: Šanca na prežitie je (1/2)^100, čo je prakticky nemožné.");
-        } else if (vybrana.contains("vylúčenie")) {
-            txtVysvetlenie.setText("SPOLOČNÉ VYLÚČENIE:\nVäzni ignorujú tmavošedé krabice (0-9).\n\n" +
-                    "KRITICKÁ CHYBA: Ak je lístok väzňa č. 5 v krabici č. 5 (ktorú nikto neotvorí), všetci zomrú. " +
-                    "Šanca, že v 10 krabiciach nebude ani jedno dôležité číslo, je takmer nulová.");
-        } else {
-            txtVysvetlenie.setText("DETERMINISTICKÉ VOĽBY (Párne/Nepárne):\nVäzni si delia priestor.\n\n" +
-                    "CHYBA: Ak sa lístok nachádza v 'zakázanej' polovici, väzeň ho nikdy nenájde.");
+            sb.append("--- CYKLICKÁ STRATÉGIA (Optimálne riešenie) ---\n\n");
+            sb.append("PRINCÍP: Väzeň sleduje cyklus podľa nájdených čísel.\n\n");
+            sb.append("PREČO TO FUNGUJE: Využíva štruktúru permutácie.\n\n");
+            sb.append("MATEMATIKA: ~31 % šanca na prežitie.");
         }
+        else if (vybrana.contains("Náhodná")) {
+            sb.append("--- NÁHODNÁ STRATÉGIA ---\n\n");
+            sb.append("Každý vyberá krabice náhodne.\n");
+            sb.append("Pravdepodobnosti sa násobia → výsledok ~0 %.");
+        }
+        else if (vybrana.contains("Hybridná")) {
+            sb.append("--- HYBRIDNÁ STRATÉGIA ---\n\n");
+            sb.append("PRINCÍP: Polovica väzňov používa cyklickú stratégiu,\n");
+            sb.append("druhá polovica vyberá krabice náhodne.\n\n");
+
+            sb.append("INTUÍCIA: Mohlo by sa zdať, že kombinácia pomôže.\n\n");
+
+            sb.append("REALITA: Aby skupina prežila, musia uspieť všetci.\n");
+            sb.append("Náhodná polovica takmer vždy zlyhá → celá skupina prehrá.\n\n");
+
+            sb.append("ZÁVER: Šanca na prežitie je prakticky 0 %.\n");
+            sb.append("Táto stratégia ukazuje, že miešanie stratégií môže škodiť.");
+        }
+        else if (vybrana.contains("vylúčenie")) {
+            sb.append("--- SPOLOČNÉ VYLÚČENIE ---\n\n");
+            sb.append("Niektoré krabice sú zakázané.\n");
+            sb.append("Ak je číslo v zakázanej krabici → okamžitá prehra.");
+        }
+        else {
+            sb.append("--- PARITNÁ STRATÉGIA ---\n\n");
+            sb.append("Rozdelenie krabíc podľa parity.\n");
+            sb.append("Ak číslo nie je v správnej polovici → väzeň zlyhá.\n");
+            sb.append("Šanca ~0 %.");
+        }
+
+        txtVysvetlenie.setText(sb.toString());
         generujNovuMapu();
     }
 
     @FXML
     public void generujNovuMapu() {
+        poslednaMapaKrabic = cycleLogic.generujKrabice(100);
+        prekresliMriezku();
+    }
+
+    private void prekresliMriezku() {
+        if (poslednaMapaKrabic == null) return;
+
         paneKrabice.getChildren().clear();
         boxToCycleMap.clear();
         cycleColorMap.clear();
         txtAreaCykly.clear();
 
         String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
-        List<Integer> krabice = cycleLogic.generujKrabice(100);
-
-        // Pomocná logika pre zobrazenie úspechu v GUI
-        boolean zlyhanie = false;
+        int maxDlzkaCyklu = 0;
 
         if (vybrana.contains("Cyklická")) {
-            List<List<Integer>> cykly = cycleLogic.najdiVsetkyCykly(krabice);
+            List<List<Integer>> cykly = cycleLogic.najdiVsetkyCykly(poslednaMapaKrabic);
             Random rnd = new Random();
+
             for (List<Integer> cyklus : cykly) {
                 Color farba = Color.hsb(rnd.nextInt(360), 0.5, 0.9);
                 cycleColorMap.put(cyklus, farba);
-                if (cyklus.size() > 50) zlyhanie = true;
-                for (Integer i : cyklus) boxToCycleMap.put(i, cyklus);
+
+                if (cyklus.size() > maxDlzkaCyklu) maxDlzkaCyklu = cyklus.size();
+
+                for (Integer i : cyklus) {
+                    boxToCycleMap.put(i, cyklus);
+                }
+
                 txtAreaCykly.appendText("Dĺžka " + cyklus.size() + ": " + cyklus + "\n");
             }
-            lblStatus.setText(zlyhanie ? "SKUPINA ZOMRELA (Príliš dlhý cyklus)" : "SKUPINA PREŽILA");
-            lblStatus.setTextFill(zlyhanie ? Color.RED : Color.GREEN);
+
+            boolean prezili = maxDlzkaCyklu <= 50;
+            lblStatus.setText(prezili ? "PREŽILI" : "ZOMRELI");
+            lblStatus.setTextFill(prezili ? Color.GREEN : Color.RED);
+
         } else {
-            lblStatus.setText("VÝSLEDOK: ZLYHANIE (Šanca ~0%)");
+            // ✅ všetky ostatné (vrátane hybrid)
+            lblStatus.setText("VÝSLEDOK: ZLYHANIE (≈ 0 %)");
             lblStatus.setTextFill(Color.RED);
-            if (vybrana.contains("vylúčenie")) txtAreaCykly.setText("Tmavé krabice sú ignorované.");
+
+            if (vybrana.contains("vylúčenie")) {
+                txtAreaCykly.setText("Krabice 0-9 sú zakázané.");
+            }
         }
 
         for (int i = 0; i < 100; i++) {
-            paneKrabice.add(vytvorKrabicu(i, krabice.get(i), vybrana), i % 10, i / 10);
+            paneKrabice.add(vytvorKrabicu(i, poslednaMapaKrabic.get(i), vybrana), i % 10, i / 10);
         }
     }
 
     private StackPane vytvorKrabicu(int index, int obsah, String strategia) {
         StackPane stack = new StackPane();
 
-        // Dynamická veľkosť krabice podľa okna
         DoubleBinding sizeBinding = Bindings.createDoubleBinding(() -> {
-            return Math.min(45.0, Math.min(paneKrabice.getWidth()/11, paneKrabice.getHeight()/11));
+            double w = (paneKrabice.getWidth() - 60) / 10.5;
+            double h = (paneKrabice.getHeight() - 60) / 10.5;
+            return Math.max(15.0, Math.min(75.0, Math.min(w, h)));
         }, paneKrabice.widthProperty(), paneKrabice.heightProperty());
 
         Rectangle rect = new Rectangle();
         rect.widthProperty().bind(sizeBinding);
         rect.heightProperty().bind(sizeBinding);
-        rect.setArcWidth(8); rect.setArcHeight(8);
+        rect.setArcWidth(8);
+        rect.setArcHeight(8);
         rect.setStroke(Color.web("#bdc3c7"));
 
-        // FARBENIE PODĽA VYBRANEJ STRATÉGIE
         if (strategia.contains("Cyklická")) {
             List<Integer> cyklus = boxToCycleMap.get(index);
             rect.setFill(cycleColorMap.getOrDefault(cyklus, Color.LIGHTGRAY));
@@ -120,20 +168,34 @@ public class ExplainController {
             rect.setFill(index % 2 == 0 ? Color.web("#2ecc71") : Color.web("#ecf0f1"));
         } else if (strategia.contains("nepárnych")) {
             rect.setFill(index % 2 != 0 ? Color.web("#e67e22") : Color.web("#ecf0f1"));
+        } else if (strategia.contains("Hybridná")) { // ✅ NEW
+            rect.setFill(index < 50 ? Color.web("#9b59b6") : Color.web("#f1c40f"));
         } else {
             rect.setFill(Color.web("#ecf0f1"));
         }
 
         Text t = new Text(String.valueOf(index));
-        t.setFill(index < 10 && strategia.contains("vylúčenie") ? Color.WHITE : Color.BLACK);
+
+        t.styleProperty().bind(Bindings.createStringBinding(() -> {
+            double fontSize = sizeBinding.get() * 0.45;
+            return "-fx-font-size: " + String.format(Locale.US, "%.1f", fontSize) + "px; -fx-font-weight: bold;";
+        }, sizeBinding));
+
+        t.setFill(Color.web("#2c3e50"));
 
         stack.getChildren().addAll(rect, t);
-        stack.setOnMouseClicked(e -> lblInfo.setText("Krabica č. " + index + " obsahuje lístok väzňa č. " + obsah));
+
+        stack.setOnMouseClicked(e ->
+                lblInfo.setText("Krabica č. " + index + " obsahuje lístok väzňa č. " + obsah)
+        );
+
+        stack.setCursor(javafx.scene.Cursor.HAND);
 
         return stack;
     }
 
-    @FXML public void onClose(javafx.event.ActionEvent event) {
+    @FXML
+    public void onClose(javafx.event.ActionEvent event) {
         ((javafx.stage.Stage)((javafx.scene.Node)event.getSource()).getScene().getWindow()).close();
     }
 }

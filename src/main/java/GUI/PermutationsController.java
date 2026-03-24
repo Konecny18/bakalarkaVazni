@@ -23,7 +23,7 @@ public class PermutationsController {
     @FXML private TextField tfPocetVaznov;
     @FXML private ComboBox<String> cbStrategie;
     @FXML private TextField tfPocetPermutacii;
-    @FXML private TextField tfVylucit; // Nové pole pre ExclusionStrategy
+    @FXML private TextField tfVylucit;
     @FXML private ProgressBar progressBar;
 
     @FXML private VBox vboxVysledky;
@@ -43,23 +43,24 @@ public class PermutationsController {
         vboxVysledky.managedProperty().bind(vboxVysledky.visibleProperty());
         progressBar.setVisible(false);
 
-        // Inicializácia stratégií
         availableStrategies.clear();
         cbStrategie.getItems().clear();
 
+        // ✅ STRATÉGIE
         availableStrategies.add(new CycleStrategy());
         availableStrategies.add(new RandomStrategy());
-        availableStrategies.add(new EvenStrategy());      // PRIDANÉ SPÄŤ
+        availableStrategies.add(new HybridStrategy()); // 👈 NOVÁ
+        availableStrategies.add(new EvenStrategy());
         availableStrategies.add(new OddStrategy());
-        availableStrategies.add(new ExclusionStrategy()); // Nezabudni vytvoriť túto triedu
+        availableStrategies.add(new ExclusionStrategy());
 
         for (Strategy s : availableStrategies) {
             cbStrategie.getItems().add(s.nazovStrategie());
         }
 
-        // Dynamické vypínanie tfVylucit, ak nie je vybraná ExclusionStrategy
         tfVylucit.disableProperty().bind(
-                cbStrategie.getSelectionModel().selectedItemProperty().map(s -> s == null || !s.contains("vylúčenie"))
+                cbStrategie.getSelectionModel().selectedItemProperty().map(
+                        s -> s == null || !s.contains("vylúčenie"))
         );
 
         if (!cbStrategie.getItems().isEmpty()) {
@@ -72,10 +73,9 @@ public class PermutationsController {
         SimulationParams params = validujVstupy();
         if (params == null) return;
 
-        Strategy chosenStrategy = najdiStrategiu(cbStrategie.getSelectionModel().getSelectedItem());
+        Strategy chosenStrategy = najdiStrategiu(cbStrategie.getValue());
         if (chosenStrategy == null) return;
 
-        // Nastavenie parametrov pre ExclusionStrategy, ak je vybraná
         if (chosenStrategy instanceof ExclusionStrategy) {
             try {
                 int v = Integer.parseInt(tfVylucit.getText());
@@ -88,7 +88,6 @@ public class PermutationsController {
 
         chosenStrategy.resetStats();
 
-        // UI Príprava
         Button spustiBtn = (Button) event.getSource();
         spustiBtn.setDisable(true);
         vboxVysledky.setVisible(false);
@@ -119,8 +118,11 @@ public class PermutationsController {
                 updateProgress(params.permutations, params.permutations);
 
                 return new SimulationResult(
-                        vsetciUspeliCount, sumaIndividualnychUspechov,
-                        sumaMaxCyklus, absolutneNajdlhsiCyklus, params.permutations
+                        vsetciUspeliCount,
+                        sumaIndividualnychUspechov,
+                        sumaMaxCyklus,
+                        absolutneNajdlhsiCyklus,
+                        params.permutations
                 );
             }
         };
@@ -153,30 +155,43 @@ public class PermutationsController {
         sb.append(String.format(localeSK, "Väzňov: %d | Limit: %d pokusov\n", p.pocetVaznov, limit));
         sb.append(String.format(localeSK, "Počet simulácií: %,d\n", p.permutations));
         sb.append("--------------------------------------------------\n");
-        sb.append(String.format(localeSK, "Celkovo úspešných hľadaní: %,d z %,d\n", r.sumaIndividualnychUspechov, celkovyPocetPokusov));
+        sb.append(String.format(localeSK, "Celkovo úspešných hľadaní: %,d z %,d\n",
+                r.sumaIndividualnychUspechov, celkovyPocetPokusov));
         sb.append(String.format(localeSK, "Úspešné prežitia skupiny: %,d\n", r.vsetciUspeliCount));
         sb.append(String.format(localeSK, "Šanca na prežitie: %.2f %%\n", r.sancaPrezitia));
 
-        // Zobrazenie rekordu úspešných jednotlivcov v neúspešnom pokuse
         int rekord = s.getMaxUspesnychVHistorii();
         if (rekord > 0 && r.vsetciUspeliCount < p.permutations) {
-            sb.append(String.format(localeSK, "Najviac úspešných v neúspešnej simulácii: %d z %d\n", rekord, p.pocetVaznov));
+            sb.append(String.format(localeSK,
+                    "Najviac úspešných v neúspešnej simulácii: %d z %d\n",
+                    rekord, p.pocetVaznov));
         }
 
-        sb.append(String.format(localeSK, "Priemerne úspešných väzňov: %.2f z %d\n", r.priemernyPocetUspesnych, p.pocetVaznov));
+        sb.append(String.format(localeSK,
+                "Priemerne úspešných väzňov: %.2f z %d\n",
+                r.priemernyPocetUspesnych, p.pocetVaznov));
 
         if (s.nazovStrategie().contains("Cyklická")) {
             sb.append("\n--- MATEMATICKÁ ANALÝZA CYKLOV ---\n");
             sb.append(String.format(localeSK, "Priemerný najdlhší cyklus: %.1f\n", r.priemernaDlzkaMaxCyklu));
             sb.append(String.format(localeSK, "Najdlhší cyklus v histórii: %d\n", r.absolutneNajdlhsiCyklus));
         }
+
+        // ✅ BONUS pre hybrid
+        if (s.nazovStrategie().contains("Hybrid")) {
+            sb.append("\n--- POZNÁMKA ---\n");
+            sb.append("Kombinácia stratégií dramaticky znižuje šancu na prežitie.\n");
+        }
+
         return sb.toString();
     }
 
+    // ✅ FIXNUTÉ (presná zhoda)
     private Strategy najdiStrategiu(String nazov) {
         return availableStrategies.stream()
-                .filter(s -> s.nazovStrategie().startsWith(nazov.split(" ")[0])) // Flexibilnejšie vyhľadávanie
-                .findFirst().orElse(null);
+                .filter(s -> s.nazovStrategie().equals(nazov))
+                .findFirst()
+                .orElse(null);
     }
 
     private SimulationParams validujVstupy() {
@@ -191,7 +206,10 @@ public class PermutationsController {
         }
     }
 
-    @FXML private void onZobrazGrafClick(ActionEvent event) { otvorGrafickeOkno(poslednaSanca, poslednaStrategia); }
+    @FXML
+    private void onZobrazGrafClick(ActionEvent event) {
+        otvorGrafickeOkno(poslednaSanca, poslednaStrategia);
+    }
 
     private void otvorGrafickeOkno(double sanca, String strategia) {
         try {
@@ -203,17 +221,22 @@ public class PermutationsController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @FXML public void onCloseButtonClick(ActionEvent event) {
+    @FXML
+    public void onCloseButtonClick(ActionEvent event) {
         ((Stage)((Node)event.getSource()).getScene().getWindow()).close();
     }
 
-    // Pomocné triedy
     private static class SimulationParams {
         int pocetVaznov, permutations;
-        SimulationParams(int p, int perm) { this.pocetVaznov = p; this.permutations = perm; }
+        SimulationParams(int p, int perm) {
+            this.pocetVaznov = p;
+            this.permutations = perm;
+        }
     }
 
     private static class SimulationResult {
