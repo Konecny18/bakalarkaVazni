@@ -2,7 +2,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.shape.Rectangle?>
 
 <HBox spacing="15.0" prefHeight="750.0" prefWidth="1100.0" style="-fx-background-color: #f4f7f9;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.ExplainController">
     <padding>
@@ -49,9 +48,7 @@
         </StackPane>
 
         <HBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #f8f9fa; -fx-padding: 10; -fx-background-radius: 5;">
-            <children>
                 <Label fx:id="lblInfo" text="Kliknite na krabicu pre zobrazenie obsahu" style="-fx-font-style: italic;"/>
-            </children>
         </HBox>
 
         <Button text="Zavrieť okno" onAction="#onClose" prefWidth="150.0"
