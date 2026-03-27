@@ -1,6 +1,7 @@
 module com.example.vaznisimulacia {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.desktop;
 
 
     // Toto povolí JavaFX prístup k tvojmu novému GUI balíčku

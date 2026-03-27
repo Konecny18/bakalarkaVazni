@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.GraphController" prefWidth="900.0" prefHeight="700.0" style="-fx-background-color: white;">
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.GraphController" prefWidth="1000.0" prefHeight="750.0" style="-fx-background-color: #f4f7f6;">
     <center>
-        <VBox spacing="20.0" alignment="CENTER">
+        <VBox fx:id="mainContainer" spacing="20.0" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 15; -fx-border-color: #d1d8e0; -fx-border-radius: 15;">
             <padding>
-                <Insets top="20" right="20" bottom="20" left="20" />
+                <Insets top="25" right="25" bottom="25" left="25" />
             </padding>
+            <VBox.margin>
+                <Insets top="10" right="10" bottom="10" left="10" />
+            </VBox.margin>
             <children>
                 <HBox spacing="30.0" alignment="CENTER" VBox.vgrow="SOMETIMES">
                     <children>
                         <VBox alignment="CENTER" spacing="10.0" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label fx:id="lblSimTitle" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Výsledok simulácie" />
-                                <PieChart fx:id="pieSimulation" legendSide="BOTTOM" />
+                                <Label fx:id="lblSimTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Výsledok simulácie" />
+                                <PieChart fx:id="pieSimulation" legendSide="BOTTOM" labelsVisible="true" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="10.0" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label fx:id="lblTheoryTitle" style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Teoretická hodnota" />
-                                <PieChart fx:id="pieTheory" legendSide="BOTTOM" />
+                                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Teoretická hodnota" />
+                                <PieChart fx:id="pieTheory" legendSide="BOTTOM" labelsVisible="true" />
                             </children>
                         </VBox>
                     </children>
@@ -34,27 +38,29 @@
                     <children>
                         <VBox spacing="10.0" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label text="Distribúcia úspešných väzňov (histogram)" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-                                <BarChart fx:id="histogram" animated="false" legendVisible="false">
+                                <Label text="Distribúcia úspešných väzňov (histogram)" style="-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #34495e;" />
+                                <BarChart fx:id="histogram" animated="false" legendVisible="false" style="-fx-bar-gap: 2;">
                                     <xAxis>
                                         <CategoryAxis label="Počet úspešných väzňov" />
                                     </xAxis>
                                     <yAxis>
-                                        <NumberAxis label="Frekvencia" />
+                                        <NumberAxis label="Frekvencia výskytu" />
                                     </yAxis>
                                 </BarChart>
                             </children>
                         </VBox>
 
-                        <VBox fx:id="statsBox" minWidth="220.0" spacing="12.0" alignment="CENTER_LEFT" style="-fx-background-color: #f8f9fa; -fx-padding: 20; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+                        <VBox fx:id="statsBox" minWidth="260.0" spacing="15.0" alignment="CENTER_LEFT"
+                              style="-fx-background-color: #ffffff; -fx-padding: 25; -fx-background-radius: 15;
+                                     -fx-border-color: #3498db; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);">
                             <children>
-                                <Label text="Súhrnné štatistiky" style="-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #2c3e50;" />
+                                <Label text="Súhrnné štatistiky" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2980b9;" />
                                 <Separator />
-                                <Label fx:id="lblTotalRuns" text="Simulácií: -" />
-                                <Label fx:id="lblMean" text="Priemer: -" />
-                                <Label fx:id="lblStdDev" text="Št. odchýlka: -" />
-                                <Label fx:id="lblMedian" text="Medián: -" />
-                                <Label fx:id="lblMax" text="Max úspechov: -" />
+                                <Label fx:id="lblTotalRuns" text="🔄 Simulácií: -" style="-fx-font-size: 13px; -fx-font-family: 'Segoe UI';" />
+                                <Label fx:id="lblMean" text="📊 Priemer: -" style="-fx-font-size: 13px;" />
+                                <Label fx:id="lblStdDev" text="📉 Št. odchýlka: -" style="-fx-font-size: 13px;" />
+                                <Label fx:id="lblMedian" text="📍 Medián: -" style="-fx-font-size: 13px;" />
+                                <Label fx:id="lblMax" text="🏆 Max úspechov: -" style="-fx-font-size: 13px;" />
                             </children>
                         </VBox>
                     </children>
@@ -62,10 +68,18 @@
             </children>
         </VBox>
     </center>
+
     <bottom>
-        <HBox alignment="CENTER" prefHeight="60.0" style="-fx-background-color: #f1f3f5;">
+        <HBox alignment="CENTER_RIGHT" prefHeight="70.0" spacing="15.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-width: 1 0 0 0;">
+            <padding>
+                <Insets right="30" />
+            </padding>
             <children>
-                <Button text="Zavrieť okno" onAction="#onClose" prefWidth="120.0" style="-fx-background-radius: 5;" />
+                <Button text="💾 Exportovať PNG" onAction="#exportujDoPNG" prefHeight="35.0" prefWidth="150.0"
+                        style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
+
+                <Button text="Zavrieť" onAction="#onClose" prefHeight="35.0" prefWidth="100.0"
+                        style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-background-radius: 8;" />
             </children>
         </HBox>
     </bottom>
