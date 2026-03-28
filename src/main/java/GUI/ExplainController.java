@@ -48,42 +48,54 @@ public class ExplainController {
     @FXML
     public void onStrategiaChanged() {
         String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
+        if (vybrana == null) return;
+
         StringBuilder sb = new StringBuilder();
 
-        if (vybrana.contains("Cyklická")) {
-            sb.append("--- CYKLICKÁ STRATÉGIA (Optimálne riešenie) ---\n\n");
-            sb.append("PRINCÍP: Väzeň sleduje cyklus podľa nájdených čísel.\n\n");
-            sb.append("PREČO TO FUNGUJE: Využíva štruktúru permutácie.\n\n");
-            sb.append("MATEMATIKA: ~31 % šanca na prežitie.");
-        }
-        else if (vybrana.contains("Náhodná")) {
-            sb.append("--- NÁHODNÁ STRATÉGIA ---\n\n");
-            sb.append("Každý vyberá krabice náhodne.\n");
-            sb.append("Pravdepodobnosti sa násobia → výsledok ~0 %.");
-        }
-        else if (vybrana.contains("Hybridná")) {
-            sb.append("--- HYBRIDNÁ STRATÉGIA ---\n\n");
-            sb.append("PRINCÍP: Polovica väzňov používa cyklickú stratégiu,\n");
-            sb.append("druhá polovica vyberá krabice náhodne.\n\n");
+        switch (vybrana) {
+            case "Cyklická stratégia":
+                sb.append("🧩 CYKLICKÁ STRATÉGIA: Matematický zázrak\n");
+                sb.append("--------------------------------------------------\n");
+                sb.append("PRINCÍP: Každý väzeň otvorí krabicu so svojím číslom. Ak tam nenájde svoj lístok, ide na číslo krabice, ktoré práve našiel (nasleduje ukazovateľ).\n\n");
+                sb.append("MATEMATICKÝ ZÁKLAD: Problém 100 väzňov premeníme na analýzu náhodných permutácií. Každá permutácia (náhodné rozloženie) sa skladá z uzavretých cyklov.\n\n");
+                sb.append("KĽÚČ K ÚSPECHU: Skupina prežije vtedy a len vtedy, ak NAJDLHŠÍ cyklus v tejto permutácii má dĺžku ≤ 50.\n\n");
+                sb.append("VÝSLEDOK: Pravdepodobnosť, že náhodná permutácia neobsahuje cyklus dlhší ako 1/2 celkového počtu, je ln(2) ≈ 31,18 %.");
+                break;
 
-            sb.append("INTUÍCIA: Mohlo by sa zdať, že kombinácia pomôže.\n\n");
+            case "Náhodná stratégia":
+                sb.append("🎲 NÁHODNÁ STRATÉGIA: Pasca nezávislosti\n");
+                sb.append("--------------------------------------------------\n");
+                sb.append("PRINCÍP: Každý väzeň si vyberie 50 krabíc úplne náhodne, bez ohľadu na ostatných.\n\n");
+                sb.append("LOGICKÁ CHYBA: Keďže sú pokusy väzňov štatisticky NEZÁVISLÉ, ich pravdepodobnosti sa násobia.\n\n");
+                sb.append("VÝPPOČET: Pravdepodobnosť úspechu jedného je 1/2. Pre 100 väzňov je to (1/2)^100.\n\n");
+                sb.append("VÝSLEDOK: 0,0000000000000000000000000000008. Šanca na prežitie je prakticky nulová. Vesmír skôr zanikne, než by touto cestou uspeli.");
+                break;
 
-            sb.append("REALITA: Aby skupina prežila, musia uspieť všetci.\n");
-            sb.append("Náhodná polovica takmer vždy zlyhá → celá skupina prehrá.\n\n");
+            case "Hybridná stratégia":
+                sb.append("⚖️ HYBRIDNÁ STRATÉGIA: Falošná nádej\n");
+                sb.append("--------------------------------------------------\n");
+                sb.append("KONCEPT: Snaha skombinovať cykly (pre štruktúru) a náhodu (pre istotu).\n\n");
+                sb.append("ANALÝZA: V tomto probléme platí zákon 'reťaz je len taká silná, ako jej najslabší článok'. Aby prežili, MUSIA uspieť všetci do jedného.\n\n");
+                sb.append("REALITA: Ak 50 väzňov zvolí náhodu, ich šanca na spoločný úspech je (1/2)^50. To je tak malé číslo, že znehodnotí akýkoľvek úspech cyklickej skupiny.\n\n");
+                sb.append("ZÁVER: Miešanie stratégií v tomto prípade nefunguje. Matematika nepustí.");
+                break;
 
-            sb.append("ZÁVER: Šanca na prežitie je prakticky 0 %.\n");
-            sb.append("Táto stratégia ukazuje, že miešanie stratégií môže škodiť.");
-        }
-        else if (vybrana.contains("vylúčenie")) {
-            sb.append("--- SPOLOČNÉ VYLÚČENIE ---\n\n");
-            sb.append("Niektoré krabice sú zakázané.\n");
-            sb.append("Ak je číslo v zakázanej krabici → okamžitá prehra.");
-        }
-        else {
-            sb.append("--- PARITNÁ STRATÉGIA ---\n\n");
-            sb.append("Rozdelenie krabíc podľa parity.\n");
-            sb.append("Ak číslo nie je v správnej polovici → väzeň zlyhá.\n");
-            sb.append("Šanca ~0 %.");
+            case "Spoločné vylúčenie (prvých 10)":
+                sb.append("🚫 SPOLOČNÉ VYLÚČENIE: Zakázané zóny\n");
+                sb.append("--------------------------------------------------\n");
+                sb.append("MECHANIZMUS: Väzni sa dohodnú, že nikdy neotvoria krabice 0-9. Hľadajú len v zvyšných 90 krabiciach.\n\n");
+                sb.append("KARDINÁLNA CHYBA: Ak sa lístok väzňa nachádza v jednej z týchto 10 zakázaných krabíc, daný väzeň nemá žiadnu šancu ho nájsť.\n\n");
+                sb.append("ŠTATISTIKA: Pravdepodobnosť, že aspoň jeden lístok z chýbajúcich čísel skončí v zakázanej zóne, je extrémne vysoká.\n\n");
+                sb.append("VÝSLEDOK: Šanca na prežitie klesá k nule.");
+                break;
+
+            default:
+                sb.append("🔢 PARITNÁ STRATÉGIA\n");
+                sb.append("--------------------------------------------------\n");
+                sb.append("PRINCÍP: Väzni si rozdelia krabice podľa párnych a nepárnych čísel.\n\n");
+                sb.append("PROBLÉM: Ak sa hľadané číslo nachádza v 'nesprávnej' skupine (napr. párny väzeň má lístok v nepárnej krabici), nikdy ho nenájde.\n\n");
+                sb.append("ZÁVER: Podobne ako pri náhodnom výbere, osudy nie sú správne prepojené cez cykly, čo vedie k okamžitému zlyhaniu skupiny.");
+                break;
         }
 
         txtVysvetlenie.setText(sb.toString());
@@ -159,16 +171,21 @@ public class ExplainController {
         rect.setArcHeight(8);
         rect.setStroke(Color.web("#bdc3c7"));
 
-        if (strategia.contains("Cyklická")) {
+        // normalize strategy string for robust checks
+        String s = strategia == null ? "" : strategia.toLowerCase();
+
+        if (s.contains("cyklick")) {
             List<Integer> cyklus = boxToCycleMap.get(index);
             rect.setFill(cycleColorMap.getOrDefault(cyklus, Color.LIGHTGRAY));
-        } else if (strategia.contains("vylúčenie")) {
+        } else if (s.contains("vyl") || s.contains("vyluc") || s.contains("vylú")) {
+            // match both accented and unaccented variants of "vylúčenie"
             rect.setFill(index < 10 ? Color.web("#34495e") : Color.web("#3498db"));
-        } else if (strategia.contains("párnych")) {
-            rect.setFill(index % 2 == 0 ? Color.web("#2ecc71") : Color.web("#ecf0f1"));
-        } else if (strategia.contains("nepárnych")) {
+        } else if (s.contains("nepár") || s.contains("nepar")) {
+            // check for "nepárnych" first (odd strategy) so it doesn't get eaten by the 'pár' check
             rect.setFill(index % 2 != 0 ? Color.web("#e67e22") : Color.web("#ecf0f1"));
-        } else if (strategia.contains("Hybridná")) { // ✅ NEW
+        } else if (s.contains("pár") || s.contains("par")) {
+            rect.setFill(index % 2 == 0 ? Color.web("#2ecc71") : Color.web("#ecf0f1"));
+        } else if (s.contains("hybrid")) { // ✅ NEW
             rect.setFill(index < 50 ? Color.web("#9b59b6") : Color.web("#f1c40f"));
         } else {
             rect.setFill(Color.web("#ecf0f1"));
@@ -181,7 +198,13 @@ public class ExplainController {
             return "-fx-font-size: " + String.format(Locale.US, "%.1f", fontSize) + "px; -fx-font-weight: bold;";
         }, sizeBinding));
 
-        t.setFill(Color.web("#2c3e50"));
+        // Set text color: white for excluded boxes when exclusion strategy is selected, otherwise default
+        // reuse previously computed lowercase 's' variable
+        if ((s.contains("vyl") || s.contains("vyluc") || s.contains("vylú")) && index < 10) {
+            t.setFill(Color.WHITE);
+        } else {
+            t.setFill(Color.web("#2c3e50"));
+        }
 
         stack.getChildren().addAll(rect, t);
 
