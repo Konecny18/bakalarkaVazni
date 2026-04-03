@@ -54,47 +54,137 @@ public class ExplainController {
 
         switch (vybrana) {
             case "Cyklická stratégia":
-                sb.append("🧩 CYKLICKÁ STRATÉGIA: Matematický zázrak\n");
+                sb.append("🧩 CYKLICKÁ STRATÉGIA: Skrytá štruktúra problému\n");
                 sb.append("--------------------------------------------------\n");
-                sb.append("PRINCÍP: Každý väzeň otvorí krabicu so svojím číslom. Ak tam nenájde svoj lístok, ide na číslo krabice, ktoré práve našiel (nasleduje ukazovateľ).\n\n");
-                sb.append("MATEMATICKÝ ZÁKLAD: Problém 100 väzňov premeníme na analýzu náhodných permutácií. Každá permutácia (náhodné rozloženie) sa skladá z uzavretých cyklov.\n\n");
-                sb.append("KĽÚČ K ÚSPECHU: Skupina prežije vtedy a len vtedy, ak NAJDLHŠÍ cyklus v tejto permutácii má dĺžku ≤ 50.\n\n");
-                sb.append("VÝSLEDOK: Pravdepodobnosť, že náhodná permutácia neobsahuje cyklus dlhší ako 1/2 celkového počtu, je ln(2) ≈ 31,18 %.");
+
+                sb.append("O ČO IDE:\n");
+                sb.append("Každý väzeň začne krabicou so svojím číslom a sleduje čísla ako smerníky.\n\n");
+
+                sb.append("🧠 TEORETICKÉ POZADIE:\n");
+                sb.append("Rozloženie lístkov v krabiciach nie je len 'náhodný chaos'.\n");
+                sb.append("Matematicky ide o tzv. permutáciu – každé číslo sa nachádza práve raz.\n\n");
+
+                sb.append("👉 Kľúčová vlastnosť permutácie:\n");
+                sb.append("Každá permutácia sa dá rozložiť na tzv. cykly (uzavreté slučky).\n\n");
+
+                sb.append("Príklad (zjednodušený):\n");
+                sb.append("1 → 5 → 3 → 1  (jeden cyklus)\n");
+                sb.append("2 → 4 → 2      (druhý cyklus)\n\n");
+
+                sb.append("👉 Čo to znamená:\n");
+                sb.append("Ak začneš na čísle 1 a sleduješ ukazovatele, nikdy nevyjdeš z tohto cyklu.\n\n");
+
+                sb.append("🖼️ PREPOJENIE NA OBRÁZOK:\n");
+                sb.append("Každý takýto cyklus vidíš na obrázku ako samostatnú farbu.\n");
+                sb.append("Farba = jedna uzavretá cesta.\n\n");
+
+                sb.append("👉 Kľúčový insight:\n");
+                sb.append("Väzeň sa vždy nachádza vo svojom cykle.\n");
+                sb.append("Nikdy nemôže 'zablúdiť' do iného.\n\n");
+
+                sb.append("📏 ROZHODUJÚCI FAKTOR:\n");
+                sb.append("Dĺžka cyklu.\n");
+                sb.append("Ak má cyklus viac ako 50 prvkov, väzeň ho nestihne celý prejsť.\n\n");
+
+                sb.append("📊 PRAVDEPODOBNOSŤ:\n");
+                sb.append("Zaujímavý výsledok matematiky:\n");
+                sb.append("Pravdepodobnosť, že existuje cyklus dlhší ako 50, je asi 69 %.\n");
+                sb.append("To znamená, že šanca na úspech je ~31 %.\n\n");
+
+                sb.append("💡 HLAVNÁ MYŠLIENKA:\n");
+                sb.append("Nehrá sa o šťastie jednotlivca, ale o globálnu štruktúru celej permutácie.");
                 break;
 
             case "Náhodná stratégia":
-                sb.append("🎲 NÁHODNÁ STRATÉGIA: Pasca nezávislosti\n");
+                sb.append("🎲 NÁHODNÁ STRATÉGIA: Nezávislé pravdepodobnosti\n");
                 sb.append("--------------------------------------------------\n");
-                sb.append("PRINCÍP: Každý väzeň si vyberie 50 krabíc úplne náhodne, bez ohľadu na ostatných.\n\n");
-                sb.append("LOGICKÁ CHYBA: Keďže sú pokusy väzňov štatisticky NEZÁVISLÉ, ich pravdepodobnosti sa násobia.\n\n");
-                sb.append("VÝPPOČET: Pravdepodobnosť úspechu jedného je 1/2. Pre 100 väzňov je to (1/2)^100.\n\n");
-                sb.append("VÝSLEDOK: 0,0000000000000000000000000000008. Šanca na prežitie je prakticky nulová. Vesmír skôr zanikne, než by touto cestou uspeli.");
+
+                sb.append("🧠 TEORETICKÉ POZADIE:\n");
+                sb.append("Každý výber krabice je nezávislý náhodný pokus.\n");
+                sb.append("To znamená, že úspech jedného väzňa nijako nepomáha ostatným.\n\n");
+
+                sb.append("👉 Matematicky:\n");
+                sb.append("Každý väzeň má pravdepodobnosť 0.5 nájsť svoje číslo.\n\n");
+
+                sb.append("👉 Ale skupina potrebuje:\n");
+                sb.append("Všetci musia uspieť naraz.\n\n");
+
+                sb.append("📊 Výpočet:\n");
+                sb.append("0.5^100 = extrémne malé číslo (~10^-30)\n\n");
+
+                sb.append("🖼️ PREPOJENIE NA OBRÁZOK:\n");
+                sb.append("Aj keď obrázok obsahuje cykly (štruktúru), táto stratégia ich ignoruje.\n\n");
+
+                sb.append("💡 HLAVNÁ MYŠLIENKA:\n");
+                sb.append("Bez využitia štruktúry sa problém mení na čistú náhodu – a tá zlyháva.");
                 break;
 
             case "Hybridná stratégia":
-                sb.append("⚖️ HYBRIDNÁ STRATÉGIA: Falošná nádej\n");
+                sb.append("⚖️ HYBRIDNÁ STRATÉGIA: Rozbitie závislosti\n");
                 sb.append("--------------------------------------------------\n");
-                sb.append("KONCEPT: Snaha skombinovať cykly (pre štruktúru) a náhodu (pre istotu).\n\n");
-                sb.append("ANALÝZA: V tomto probléme platí zákon 'reťaz je len taká silná, ako jej najslabší článok'. Aby prežili, MUSIA uspieť všetci do jedného.\n\n");
-                sb.append("REALITA: Ak 50 väzňov zvolí náhodu, ich šanca na spoločný úspech je (1/2)^50. To je tak malé číslo, že znehodnotí akýkoľvek úspech cyklickej skupiny.\n\n");
-                sb.append("ZÁVER: Miešanie stratégií v tomto prípade nefunguje. Matematika nepustí.");
+
+                sb.append("🧠 TEORETICKÉ POZADIE:\n");
+                sb.append("Problém vyžaduje spoločný úspech (logická AND podmienka).\n\n");
+
+                sb.append("👉 Dôležitý princíp:\n");
+                sb.append("Ak sú udalosti nezávislé:\n");
+                sb.append("P(A ∩ B) = P(A) × P(B)\n\n");
+
+                sb.append("👉 Čo sa tu deje:\n");
+                sb.append("Časť väzňov využíva cykly (závislá štruktúra),\n");
+                sb.append("časť ide náhodne (nezávislé pokusy).\n\n");
+
+                sb.append("📊 Dôsledok:\n");
+                sb.append("Stačí malá skupina náhodných → pravdepodobnosť padá exponenciálne.\n\n");
+
+                sb.append("🖼️ PREPOJENIE NA OBRÁZOK:\n");
+                sb.append("Vidíš cykly (poriadok), ale časť väzňov sa nimi neriadi.\n\n");
+
+                sb.append("💡 HLAVNÁ MYŠLIENKA:\n");
+                sb.append("Zmiešaním stratégií sa stratí výhoda korelácie.");
                 break;
 
             case "Spoločné vylúčenie (prvých 10)":
-                sb.append("🚫 SPOLOČNÉ VYLÚČENIE: Zakázané zóny\n");
+                sb.append("🚫 SPOLOČNÉ VYLÚČENIE: Chybná redukcia priestoru\n");
                 sb.append("--------------------------------------------------\n");
-                sb.append("MECHANIZMUS: Väzni sa dohodnú, že nikdy neotvoria krabice 0-9. Hľadajú len v zvyšných 90 krabiciach.\n\n");
-                sb.append("KARDINÁLNA CHYBA: Ak sa lístok väzňa nachádza v jednej z týchto 10 zakázaných krabíc, daný väzeň nemá žiadnu šancu ho nájsť.\n\n");
-                sb.append("ŠTATISTIKA: Pravdepodobnosť, že aspoň jeden lístok z chýbajúcich čísel skončí v zakázanej zóne, je extrémne vysoká.\n\n");
-                sb.append("VÝSLEDOK: Šanca na prežitie klesá k nule.");
+
+                sb.append("🧠 TEORETICKÉ POZADIE:\n");
+                sb.append("Lístky sú rozmiestnené rovnomerne (uniformne náhodne).\n\n");
+
+                sb.append("👉 To znamená:\n");
+                sb.append("Každá krabica má rovnakú šancu obsahovať akékoľvek číslo.\n\n");
+
+                sb.append("📊 Dôsledok:\n");
+                sb.append("Šanca, že konkrétne číslo je v zakázanej oblasti = 10 %.\n\n");
+
+                sb.append("👉 Pre 100 väzňov:\n");
+                sb.append("Takmer isté, že niekto prehrá.\n\n");
+
+                sb.append("🖼️ PREPOJENIE NA OBRÁZOK:\n");
+                sb.append("Cykly často prechádzajú cez zakázané krabice → nedajú sa dokončiť.\n\n");
+
+                sb.append("💡 HLAVNÁ MYŠLIENKA:\n");
+                sb.append("Ignorovanie časti priestoru bez informácie je fatálna chyba.");
                 break;
 
             default:
-                sb.append("🔢 PARITNÁ STRATÉGIA\n");
+                sb.append("🔢 PARITNÁ STRATÉGIA: Nesúlad so štruktúrou\n");
                 sb.append("--------------------------------------------------\n");
-                sb.append("PRINCÍP: Väzni si rozdelia krabice podľa párnych a nepárnych čísel.\n\n");
-                sb.append("PROBLÉM: Ak sa hľadané číslo nachádza v 'nesprávnej' skupine (napr. párny väzeň má lístok v nepárnej krabici), nikdy ho nenájde.\n\n");
-                sb.append("ZÁVER: Podobne ako pri náhodnom výbere, osudy nie sú správne prepojené cez cykly, čo vedie k okamžitému zlyhaniu skupiny.");
+
+                sb.append("🧠 TEORETICKÉ POZADIE:\n");
+                sb.append("Rozdelenie (párne/nepárne) nemá žiadny vzťah k permutácii.\n\n");
+
+                sb.append("👉 Cykly:\n");
+                sb.append("prechádzajú medzi všetkými číslami bez ohľadu na paritu.\n\n");
+
+                sb.append("📊 Dôsledok:\n");
+                sb.append("Polovica väzňov nikdy nemôže nájsť svoje číslo.\n\n");
+
+                sb.append("🖼️ PREPOJENIE NA OBRÁZOK:\n");
+                sb.append("Farby (cykly) ignorujú tvoje rozdelenie – preto stratégia zlyhá.\n\n");
+
+                sb.append("💡 HLAVNÁ MYŠLIENKA:\n");
+                sb.append("Stratégia musí rešpektovať skutočnú štruktúru problému.");
                 break;
         }
 
