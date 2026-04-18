@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Implementácia Cyklickej stratégie pre problém 100 väzňov.
+ * Využíva matematický rozklad náhodnej permutácie na disjunktné cykly.
+ */
 public class CycleStrategy implements Strategy {
 
     private int poslednyMaxCyklus = 0;
-    private int maxUspesnychVHistorii = 0; // Premenná pre sledovanie rekordu v neúspešných pokusoch
+    private int maxUspesnychVHistorii = 0;
 
     @Override
     public String nazovStrategie() {
@@ -30,6 +34,9 @@ public class CycleStrategy implements Strategy {
         return poslednyMaxCyklus;
     }
 
+    /**
+     * Generuje náhodnú permutáciu lístkov v krabiciach.
+     */
     public List<Integer> generujKrabice(int pocetKrabic) {
         List<Integer> krabice = new ArrayList<>();
         for (int i = 0; i < pocetKrabic; i++) {
@@ -39,6 +46,9 @@ public class CycleStrategy implements Strategy {
         return krabice;
     }
 
+    /**
+     * Hlavná výpočtová metóda pre jednu simuláciu.
+     */
     @Override
     public int pocitaj(int pocetVaznov, int limitPokusov) {
         List<Integer> krabice = generujKrabice(pocetVaznov);
@@ -51,8 +61,8 @@ public class CycleStrategy implements Strategy {
             int dlzka = cyklus.size();
             if (dlzka > maxDlzkaCyklu) maxDlzkaCyklu = dlzka;
 
-            // V cyklickej stratégii platí: ak je dĺžka cyklu pod limitom,
-            // všetci väzni v tomto cykle nájdu svoje číslo.
+            // V cyklickej stratégii platí: ak je dĺžka cyklu pod limitom (limitPokusov),
+            // všetci väzni v tomto konkrétnom cykle nájdu svoje číslo.
             if (dlzka <= limitPokusov) {
                 uspesniVazni += dlzka;
             }
@@ -60,8 +70,7 @@ public class CycleStrategy implements Strategy {
 
         this.poslednyMaxCyklus = maxDlzkaCyklu;
 
-        // Sledovanie rekordu: ak niekto zlyhal (skupina neprežila),
-        // porovnáme počet úspešných s naším doterajším rekordom.
+        // Sledovanie rekordu úspešnosti v neúspešných pokusoch (pre reporty)
         if (uspesniVazni < pocetVaznov) {
             if (uspesniVazni > maxUspesnychVHistorii) {
                 maxUspesnychVHistorii = uspesniVazni;
@@ -72,8 +81,8 @@ public class CycleStrategy implements Strategy {
     }
 
     /**
-     * Pomocná metóda na rozklad permutácie (krabíc) na cykly.
-     * Matematicky: Permutácia sa dá vždy jednoznačne rozložiť na disjunktné cykly.
+     * Pomocná metóda na rozklad permutácie na zoznamy cyklov.
+     * Používa sa na výpočet úspešnosti simulácie.
      */
     public List<List<Integer>> najdiVsetkyCykly(List<Integer> krabice) {
         int pocetKrabic = krabice.size();
@@ -93,5 +102,19 @@ public class CycleStrategy implements Strategy {
             }
         }
         return vsetkyCykly;
+    }
+
+    /**
+     * NOVÁ METÓDA pre prepojenie s grafom (GraphController).
+     * Vracia iba dĺžky jednotlivých cyklov bez zoznamu prvkov.
+     */
+    public List<Integer> ziskajDlzkyCyklov(List<Integer> krabice) {
+        List<Integer> dlzky = new ArrayList<>();
+        List<List<Integer>> vsetkyCykly = najdiVsetkyCykly(krabice);
+
+        for (List<Integer> cyklus : vsetkyCykly) {
+            dlzky.add(cyklus.size());
+        }
+        return dlzky;
     }
 }

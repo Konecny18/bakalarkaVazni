@@ -43,6 +43,9 @@
 
                <Label style="-fx-font-weight: bold; -fx-text-fill: #34495e; -fx-font-size: 14px;" text="Vylúčiť krabíc:" GridPane.rowIndex="3" />
                <TextField fx:id="tfVylucit" maxWidth="300.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+               <!-- Inline error message for invalid exclusion input -->
+               <Label fx:id="lblVylucitErr" GridPane.columnIndex="1" GridPane.rowIndex="4" text="" wrapText="true" maxWidth="300"
+                      style="-fx-text-fill: #e74c3c; -fx-font-size: 12px; -fx-padding: 4 0 0 0;" />
             </GridPane>
 
             <VBox alignment="CENTER" spacing="15.0">

@@ -19,6 +19,7 @@ import java.util.*;
 public class PermutationsController {
 
     @FXML private TextField tfPocetVaznov, tfPocetPermutacii, tfVylucit;
+    @FXML private Label lblVylucitErr;
     @FXML private ComboBox<String> cbStrategie;
     @FXML private ProgressBar progressBar;
     @FXML private Button btnSpustit, btnCancel;
@@ -36,6 +37,8 @@ public class PermutationsController {
         tfPocetVaznov.setText("100");
         tfPocetPermutacii.setText("10000");
         tfVylucit.setText("0");
+        // Setup inline validation for exclusion input
+        tfVylucit.textProperty().addListener((obs, oldV, newV) -> validateVylucit());
         vboxVysledky.setVisible(false);
         vboxVysledky.managedProperty().bind(vboxVysledky.visibleProperty());
         progressBar.setVisible(false);
@@ -46,190 +49,205 @@ public class PermutationsController {
         ));
         for (Strategy s : availableStrategies) cbStrategie.getItems().add(s.nazovStrategie());
 
-        tfVylucit.disableProperty().bind(cbStrategie.getSelectionModel().selectedItemProperty().map(s -> s == null || !s.contains("vylúčenie")));
         if (!cbStrategie.getItems().isEmpty()) cbStrategie.getSelectionModel().select(0);
+
+        // Logika pre vypínanie poľa "vylúčiť"
+        tfVylucit.disableProperty().bind(cbStrategie.getSelectionModel().selectedItemProperty().map(s ->
+                s == null || !s.toLowerCase().contains("vylúčenie")));
+
+        // Validate initial state
+        validateVylucit();
     }
 
-    /**
-     * Start simulation on background Task. Validates inputs and keeps UI responsive.
-     */
-    @FXML
-    public void onSpustiButtonClick() {
-        SimulationParams params = validujVstupy();
-        if (params == null) return;
+    // Validates tfVylucit; shows inline message and red border if invalid
+    private void validateVylucit() {
+        if (lblVylucitErr == null || tfVylucit == null || tfPocetVaznov == null) return;
+        String text = tfVylucit.getText();
+        int max = 1000; // fallback
+        try { max = Integer.parseInt(tfPocetVaznov.getText()); } catch (Exception ignored) {}
 
-        Strategy strategy = najdiStrategiu(cbStrategie.getValue());
-        if (strategy == null) {
-            new Alert(Alert.AlertType.ERROR, "Vyberte stratégie.").showAndWait();
+        if (text == null || text.isBlank()) {
+            lblVylucitErr.setText("");
+            tfVylucit.setStyle("");
             return;
         }
 
-        // parse exclusion count once (if needed) to avoid double-parsing
-        int vylucene = 0;
-        if (strategy instanceof ExclusionStrategy) {
-            try {
-                vylucene = Integer.parseInt(tfVylucit.getText());
-                ((ExclusionStrategy) strategy).setPocetVylucenych(vylucene);
-            } catch (NumberFormatException ex) {
-                new Alert(Alert.AlertType.ERROR, "Zadajte platné číslo pre vylúčené krabice.").showAndWait();
-                return;
+        try {
+            int val = Integer.parseInt(text);
+            if (val < 0 || val >= max) {
+                lblVylucitErr.setText("Zadajte celé číslo medzi 0 a " + (max-1));
+                tfVylucit.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2;");
+            } else {
+                lblVylucitErr.setText("");
+                tfVylucit.setStyle("");
             }
+        } catch (NumberFormatException ex) {
+            lblVylucitErr.setText("Zadajte platné celé číslo");
+            tfVylucit.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2;");
         }
-
-        // Use a fresh strategy instance for the run to avoid accidental shared state
-        Strategy strategyForRun = najdiStrategiu(cbStrategie.getValue());
-        if (strategyForRun instanceof ExclusionStrategy) {
-            ((ExclusionStrategy) strategyForRun).setPocetVylucenych(vylucene);
-        }
-
-        // Prepare UI state
-        btnSpustit.setDisable(true);
-        btnCancel.setVisible(true);
-        vboxVysledky.setVisible(false);
-        progressBar.setProgress(0);
-        progressBar.setVisible(true);
-
-        List<Integer> runResults = Collections.synchronizedList(new ArrayList<>());
-
-        currentTask = new Task<>() {
-            @Override
-            protected SimulationResult call() {
-                // Reset strategy state on background thread if needed
-                strategyForRun.resetStats();
-
-                long vsetciUspeli = 0L;
-                int limit = params.pocetVaznov / 2;
-
-                for (int i = 0; i < params.permutations; i++) {
-                    if (isCancelled()) break;
-
-                    int uspesni = strategyForRun.pocitaj(params.pocetVaznov, limit);
-                    runResults.add(uspesni);
-
-                    if (uspesni == params.pocetVaznov) vsetciUspeli++;
-
-                    if (i % Math.max(1, params.permutations / 200) == 0) updateProgress(i, params.permutations);
-                }
-
-                // ensure progress reports completion
-                updateProgress(params.permutations, params.permutations);
-
-                int actualRuns = runResults.size();
-                return new SimulationResult(vsetciUspeli, new ArrayList<>(runResults), actualRuns);
-            }
-        };
-
-        progressBar.progressProperty().bind(currentTask.progressProperty());
-
-        currentTask.setOnSucceeded(e -> {
-            poslednyResult = currentTask.getValue();
-            poslednaStrategiaNazov = strategyForRun.nazovStrategie();
-            posledneRawData = new ArrayList<>(runResults);
-            lblReport.setText(generujReport(poslednyResult, poslednaStrategiaNazov, params));
-            finishUI();
-        });
-
-        currentTask.setOnCancelled(e -> {
-            lblReport.setText("Výpočet bol zrušený používateľom.");
-            finishUI();
-        });
-
-        currentTask.setOnFailed(e -> {
-            Throwable ex = currentTask.getException();
-            String msg = (ex == null) ? "Neznáma chyba" : ex.getMessage();
-            new Alert(Alert.AlertType.ERROR, "Chyba počas simulácie: " + msg).showAndWait();
-            finishUI();
-        });
-
-        Thread t = new Thread(currentTask, "permutation-sim");
-        t.setDaemon(true);
-        t.start();
     }
 
-    /**
-     * Build a human-friendly report from results.
-     */
+    @FXML
+    public void onSpustiButtonClick() {
+        try {
+            SimulationParams params = validujVstupy();
+            if (params == null) return;
+
+            Strategy selected = najdiStrategiu(cbStrategie.getValue());
+            if (selected == null) return;
+
+            // If ExclusionStrategy is selected, parse and set the exclusion count from tfVylucit
+            if (selected instanceof logic.ExclusionStrategy es) {
+                try {
+                    int toExclude = Integer.parseInt(tfVylucit.getText());
+                    if (toExclude < 0 || toExclude >= params.pocetVaznov) {
+                        new Alert(Alert.AlertType.ERROR, "Počet vylúčených musí byť medzi 0 a počtom väzňov-1 (" + (params.pocetVaznov-1) + ")").showAndWait();
+                        return;
+                    }
+                    es.setPocetVylucenych(toExclude);
+                } catch (NumberFormatException nfe) {
+                    new Alert(Alert.AlertType.ERROR, "Neplatný počet vylúčených (zadajte celé číslo)").showAndWait();
+                    return;
+                }
+            }
+
+            // Príprava UI
+            btnSpustit.setDisable(true);
+            btnCancel.setVisible(true);
+            vboxVysledky.setVisible(false);
+            progressBar.setProgress(0);
+            progressBar.setVisible(true);
+
+            List<Integer> runResults = Collections.synchronizedList(new ArrayList<>());
+
+            currentTask = new Task<>() {
+                @Override
+                protected SimulationResult call() {
+                    selected.resetStats();
+                    long vsetciUspeli = 0L;
+                    int limit = params.pocetVaznov / 2;
+
+                    // Mapa pre štatistiku cyklov (Dĺžka -> Počet výskytov)
+                    Map<Integer, Integer> akumulovaneCykly = new HashMap<>();
+
+                    for (int i = 0; i < params.permutations; i++) {
+                        if (isCancelled()) break;
+
+                        // Ak je to CycleStrategy, zbierame podrobné dáta o cykloch
+                        if (selected instanceof CycleStrategy cs) {
+                            List<Integer> krabice = cs.generujKrabice(params.pocetVaznov);
+                            List<Integer> dlzky = cs.ziskajDlzkyCyklov(krabice);
+
+                            for (int d : dlzky) {
+                                akumulovaneCykly.put(d, akumulovaneCykly.getOrDefault(d, 0) + 1);
+                            }
+
+                            int maxD = dlzky.stream().max(Integer::compare).orElse(0);
+                            if (maxD <= limit) {
+                                vsetciUspeli++;
+                                runResults.add(params.pocetVaznov);
+                            } else {
+                                int uspesni = dlzky.stream().filter(d -> d <= limit).mapToInt(Integer::intValue).sum();
+                                runResults.add(uspesni);
+                            }
+                        } else {
+                            runResults.add(selected.pocitaj(params.pocetVaznov, limit));
+                        }
+
+                        if (i % 500 == 0) updateProgress(i, params.permutations);
+                    }
+
+                    return new SimulationResult(vsetciUspeli, new ArrayList<>(runResults), runResults.size(), akumulovaneCykly);
+                }
+            };
+
+            progressBar.progressProperty().bind(currentTask.progressProperty());
+
+            currentTask.setOnSucceeded(e -> {
+                poslednyResult = currentTask.getValue();
+                poslednaStrategiaNazov = selected.nazovStrategie();
+                posledneRawData = new ArrayList<>(runResults);
+                lblReport.setText(generujReport(poslednyResult, poslednaStrategiaNazov, params));
+                finishUI();
+            });
+
+            currentTask.setOnFailed(e -> {
+                finishUI();
+                new Alert(Alert.AlertType.ERROR, "Chyba simulácie.").showAndWait();
+            });
+
+            new Thread(currentTask).start();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Chyba pri spúšťaní simulácie: " + ex.getMessage()).showAndWait();
+            finishUI();
+        }
+    }
+
+    // TÁTO METÓDA CHÝBALA/MALA ZLÝ NÁZOV (podľa tvojho erroru)
+    @FXML
+    public void onCancelButtonClick() {
+        if (currentTask != null) currentTask.cancel();
+    }
+
+    @FXML
+    private void onZobrazGrafClick() {
+        if (poslednyResult == null) return;
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/graph-view.fxml"));
+            Parent root = loader.load();
+            GraphController ctrl = loader.getController();
+
+            // Posielame akumulované dáta o cykloch zo všetkých behov
+            ctrl.nastavData(
+                    posledneRawData,
+                    poslednyResult.sancaPrezitia,
+                    poslednaStrategiaNazov,
+                    poslednyResult.celkovaDistribuciaCyklov
+            );
+
+            Stage s = new Stage();
+            s.initModality(Modality.APPLICATION_MODAL);
+            s.setTitle("Grafické výsledky");
+            s.setScene(new Scene(root));
+            s.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private String generujReport(SimulationResult r, String meno, SimulationParams p) {
-        Locale sk = Locale.forLanguageTag("sk-SK");
-        double teoria = meno.toLowerCase().contains("cykl") ? 31.18 : 0.0;
-        double odchylka = r.sancaPrezitia - teoria;
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("📊 FINÁLNY REPORT SIMULÁCIE\n");
-        sb.append("==================================================\n");
-        sb.append(String.format(sk, "📍 Stratégia:      %s\n", meno));
-        sb.append(String.format(sk, "🔄 Konfigurácia:   %d väzňov | %,d simulácií\n", p.pocetVaznov, r.totalRuns));
-        sb.append("--------------------------------------------------\n\n");
-
-        sb.append("🏆 DOSIAHNUTÉ VÝSLEDKY\n");
-        sb.append(String.format(sk, "✨ Šanca na prežitie:   %.2f %%\n", r.sancaPrezitia));
-        if (teoria > 0) {
-            sb.append(String.format(sk, "📉 Teoretická hodnota:  %.2f %% (Odchýlka: %+.2f %%)\n", teoria, odchylka));
-        }
-
-        sb.append("\n📈 DISTRIBUČNÉ CHARAKTERISTIKY\n");
-        sb.append("--------------------------------------------------\n");
-        sb.append(String.format(sk, "🔸 Priemerný počet úspešných väzňov:  %.2f z %d\n", r.priemer, p.pocetVaznov));
-        sb.append(String.format(sk, "🔸 Medián úspechov:                   %.1f\n", r.median));
-        sb.append(String.format(sk, "🔸 Smerodajná odchýlka (σ):          %.2f\n", r.stdDev));
-        sb.append(String.format(sk, "🔸 Maximálny počet úspechov:         %d\n", r.maxVJednej));
-
-        sb.append("\n💡 INTERPRETÁCIA\n");
-        sb.append("--------------------------------------------------\n");
-        if (r.stdDev > 20) {
-            sb.append("👉 Vysoká smerodajná odchýlka potvrdzuje bimodálne\n   rozdelenie (úspech skupiny je viazaný na cykly).");
-        } else {
-            sb.append("👉 Nízka odchýlka naznačuje nezávislé pokusy\n   a konvergenciu k normálnemu rozdeleniu.");
-        }
-        sb.append("\n==================================================");
-
-        return sb.toString();
+        return String.format("📊 Stratégia: %s\n✨ Úspešnosť: %.2f%%\n👥 Priemer úspešných: %.2f",
+                meno, r.sancaPrezitia, r.priemer);
     }
 
     private void finishUI() {
-        try { progressBar.progressProperty().unbind(); } catch (Exception ignored) {}
         progressBar.setVisible(false);
         btnCancel.setVisible(false);
         btnSpustit.setDisable(false);
         vboxVysledky.setVisible(true);
     }
 
-    @FXML private void onCancelButtonClick() { if (currentTask != null) currentTask.cancel(); }
-
-    @FXML
-    private void onZobrazGrafClick() {
-        if (posledneRawData == null || posledneRawData.isEmpty() || poslednyResult == null) {
-            new Alert(Alert.AlertType.INFORMATION, "Žiadne výsledky na zobrazenie. Spustite simuláciu.").showAndWait();
-            return;
-        }
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/graph-view.fxml"));
-            Parent root = loader.load();
-            GraphController ctrl = loader.getController();
-            ctrl.nastavData(posledneRawData, poslednyResult.sancaPrezitia, poslednaStrategiaNazov);
-            Stage s = new Stage(); s.initModality(Modality.APPLICATION_MODAL);
-            s.setScene(new Scene(root)); s.show();
-        } catch (IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Nepodarilo sa otvoriť okno grafu: " + e.getMessage()).showAndWait();
-        }
+    private Strategy najdiStrategiu(String n) {
+        return availableStrategies.stream().filter(s -> s.nazovStrategie().equals(n)).findFirst().orElse(null);
     }
-
-    private Strategy najdiStrategiu(String n) { return availableStrategies.stream().filter(s -> s.nazovStrategie().equals(n)).findFirst().orElse(null); }
 
     private SimulationParams validujVstupy() {
         try {
-            int pocet = Integer.parseInt(tfPocetVaznov.getText());
-            int permutations = Integer.parseInt(tfPocetPermutacii.getText());
-            if (pocet <= 0 || permutations <= 0) throw new NumberFormatException();
-            return new SimulationParams(pocet, permutations);
-        } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Zadajte platné kladné čísla pre počet väzňov a počet simulácií.").showAndWait();
+            return new SimulationParams(Integer.parseInt(tfPocetVaznov.getText()), Integer.parseInt(tfPocetPermutacii.getText()));
+        } catch (Exception e) {
+            new Alert(Alert.AlertType.ERROR, "Neplatné vstupy").showAndWait();
             return null;
         }
     }
 
-    @FXML public void onCloseButtonClick(ActionEvent e) { ((Stage)((Node)e.getSource()).getScene().getWindow()).close(); }
+    @FXML
+    public void onCloseButtonClick(ActionEvent e) {
+        ((Stage)((Node)e.getSource()).getScene().getWindow()).close();
+    }
+
+    // --- Vnútorné triedy pre dáta ---
 
     private static class SimulationParams {
         int pocetVaznov, permutations;
@@ -237,28 +255,15 @@ public class PermutationsController {
     }
 
     private static class SimulationResult {
-        double sancaPrezitia, priemer, median, stdDev;
-        int maxVJednej;
+        double sancaPrezitia, priemer;
         int totalRuns;
+        Map<Integer, Integer> celkovaDistribuciaCyklov;
 
-        SimulationResult(long uspesni, List<Integer> data, int actualRuns) {
-            this.totalRuns = Math.max(0, actualRuns);
-            this.sancaPrezitia = (this.totalRuns > 0) ? ((double) uspesni / this.totalRuns) * 100.0 : 0.0;
-
-            if (data == null || data.isEmpty()) {
-                this.priemer = 0.0; this.median = 0.0; this.stdDev = 0.0; this.maxVJednej = 0; return;
-            }
-
-            IntSummaryStatistics stats = data.stream().mapToInt(i -> i).summaryStatistics();
-            this.priemer = stats.getAverage();
-            this.maxVJednej = stats.getMax();
-
-            List<Integer> s = data.stream().sorted().toList();
-            int n = s.size();
-            this.median = (n % 2 == 1) ? s.get(n/2) : (s.get(n/2 - 1) + s.get(n/2)) / 2.0;
-
-            double var = data.stream().mapToDouble(i -> Math.pow(i - this.priemer, 2)).sum() / n;
-            this.stdDev = Math.sqrt(var);
+        SimulationResult(long uspesni, List<Integer> data, int actualRuns, Map<Integer, Integer> cyklyStats) {
+            this.totalRuns = actualRuns;
+            this.celkovaDistribuciaCyklov = cyklyStats;
+            this.sancaPrezitia = (actualRuns > 0) ? ((double) uspesni / actualRuns) * 100.0 : 0.0;
+            this.priemer = data.stream().mapToInt(i -> i).average().orElse(0.0);
         }
     }
 }

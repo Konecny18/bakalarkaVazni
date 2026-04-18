@@ -5,68 +5,93 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.GraphController" prefWidth="1000.0" prefHeight="750.0" style="-fx-background-color: #f4f7f6;">
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.GraphController" prefWidth="1200.0" prefHeight="850.0" style="-fx-background-color: #f4f7f6;">
     <center>
-        <VBox fx:id="mainContainer" spacing="20.0" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 15; -fx-border-color: #d1d8e0; -fx-border-radius: 15;">
+        <VBox fx:id="mainContainer" spacing="15.0" alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 15; -fx-border-color: #d1d8e0; -fx-border-radius: 15;">
             <padding>
-                <Insets top="25" right="25" bottom="25" left="25" />
+                <Insets top="20" right="20" bottom="20" left="20" />
             </padding>
             <VBox.margin>
                 <Insets top="10" right="10" bottom="10" left="10" />
             </VBox.margin>
 
-            <HBox spacing="30.0" alignment="CENTER" VBox.vgrow="SOMETIMES">
-                <VBox alignment="CENTER" spacing="10.0" HBox.hgrow="ALWAYS">
-                    <Label fx:id="lblSimTitle" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Výsledok simulácie" />
+            <HBox spacing="20.0" alignment="CENTER" prefHeight="250.0">
+                <VBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+                    <Label fx:id="lblSimTitle" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Pomer prežitia (Simulácia)" />
                     <PieChart fx:id="pieSimulation" />
                 </VBox>
 
-                <VBox alignment="CENTER" spacing="10.0" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Teoretická hodnota" />
+                <VBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="Pomer prežitia (Teória)" />
                     <PieChart fx:id="pieTheory" />
                 </VBox>
             </HBox>
 
             <Separator />
 
-            <HBox spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS">
-                <VBox spacing="10.0" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                    <Label text="Distribúcia úspešných väzňov (histogram)" style="-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #34495e;" />
-                    <BarChart fx:id="histogram" animated="false" legendVisible="false" style="-fx-bar-gap: 2;">
-                        <xAxis>
-                            <CategoryAxis label="Počet úspešných väzňov" />
-                        </xAxis>
-                        <yAxis>
-                            <NumberAxis label="Frekvencia výskytu" />
-                        </yAxis>
-                    </BarChart>
-                </VBox>
+            <HBox spacing="15.0" VBox.vgrow="ALWAYS">
 
-                <VBox minWidth="260.0" spacing="15.0" alignment="CENTER_LEFT"
-                      style="-fx-background-color: #ffffff; -fx-padding: 25; -fx-background-radius: 15;
-                             -fx-border-color: #3498db; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);">
-                    <Label text="Súhrnné štatistiky" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2980b9;" />
+                <!-- Left column: charts + descriptions wrapped in a ScrollPane so charts keep readable size -->
+                <ScrollPane HBox.hgrow="ALWAYS" fitToWidth="true" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-padding: 0;">
+                    <content>
+                        <VBox spacing="10.0" VBox.vgrow="ALWAYS" prefWidth="800.0" style="-fx-padding: 0 10 0 0;">
+                            <Label text="Distribúcia počtu úspešne nájdených kariet v simuláciách" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #34495e;" />
+                            <!-- Popis histogramu pre lepšie pochopenie používateľom -->
+                            <Label wrapText="true"
+                                   maxWidth="1100"
+                                   text="Tento histogram zobrazuje, koľko väzňov si v jednotlivých simuláciách našlo svoju kartu.&#10;&#10;Osa X: počet úspešných väzňov v jednej simulácii (alebo intervaly/biny pri veľkom rozsahu).&#10;Osa Y: počet simulácií, ktoré dosiahli daný počet úspechov.&#10;&#10;Zelený stĺpec predstavuje prípady, kde všetci väzni našli svoju kartu.&#10;Ak nad stĺpcom podržíte kurzor, zobrazí sa presný počet (tooltip)."
+                                   style="-fx-font-size: 13px; -fx-text-fill: #000000; -fx-padding: 10 0 20 0; -fx-line-spacing: 2px;" />
+
+                            <BarChart fx:id="histogram" animated="false" legendVisible="false" VBox.vgrow="ALWAYS">
+                                <xAxis><CategoryAxis label="Počet úspešných" /></xAxis>
+                                <yAxis><NumberAxis label="Frekvencia" /></yAxis>
+                            </BarChart>
+
+
+
+                            <Separator />
+
+                            <!-- Cycle analysis section: will be shown only for cyclic strategy -->
+                            <VBox fx:id="cycleSection" spacing="8.0">
+                                <Label text="Analýza dĺžok cyklov" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #34495e;" />
+
+                                <Label wrapText="true"
+                                       maxWidth="1100"
+                                       text="Tento graf analyzuje štruktúru permutácií pomocou dĺžok cyklov nazbieraných zo všetkých simulácií.&#10;&#10;Osa X: dĺžka cyklu (od 1 po N).&#10;Osa Y: celkový počet výskytov danej dĺžky cyklu v simulácii.&#10;&#10;Zelené stĺpce (dĺžka 1-50) sú 'bezpečné' cykly. Červené stĺpce (dĺžka 51+) predstavujú kritické cykly, ktoré spôsobujú zlyhanie celej skupiny.&#10;Podržaním kurzora nad stĺpcom uvidíte presný počet výskytov."
+                                       style="-fx-font-size: 13px; -fx-text-fill: #000000; -fx-padding: 10 0 20 0; -fx-line-spacing: 2px;" />
+
+                                <BarChart fx:id="cycleHistogram" animated="false" legendVisible="false" VBox.vgrow="ALWAYS">
+                                    <xAxis><CategoryAxis label="Dĺžka cyklu" /></xAxis>
+                                    <yAxis><NumberAxis label="Počet cyklov" /></yAxis>
+                                </BarChart>
+                            </VBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+
+                <VBox minWidth="240.0" maxWidth="240.0" spacing="12.0"
+                      style="-fx-background-color: #f8f9fa; -fx-padding: 20; -fx-background-radius: 10;
+                             -fx-border-color: #3498db; -fx-border-width: 1;">
+                    <Label text="Súhrnné dáta" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2980b9;" />
                     <Separator />
-                    <Label fx:id="lblTotalRuns" text="🔄 Simulácií: -" style="-fx-font-size: 13px; -fx-font-family: 'Segoe UI';" />
+                    <Label fx:id="lblTotalRuns" text="🔄 Simulácií: -" style="-fx-font-size: 13px;" />
                     <Label fx:id="lblMean" text="📊 Priemer: -" style="-fx-font-size: 13px;" />
                     <Label fx:id="lblStdDev" text="📉 Št. odchýlka: -" style="-fx-font-size: 13px;" />
                     <Label fx:id="lblMedian" text="📍 Medián: -" style="-fx-font-size: 13px;" />
                     <Label fx:id="lblMax" text="🏆 Max úspechov: -" style="-fx-font-size: 13px;" />
+
+                    <Region VBox.vgrow="ALWAYS" /> <Label text="Tip: Červené stĺpce v grafe cyklov označujú dĺžku > 50 (zlyhanie)."
+                                                          wrapText="true" style="-fx-font-size: 11px; -fx-font-style: italic; -fx-text-fill: #7f8c8d;" />
                 </VBox>
             </HBox>
-
         </VBox>
     </center>
 
     <bottom>
-        <HBox alignment="CENTER_RIGHT" prefHeight="70.0" spacing="15.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-width: 1 0 0 0;">
-            <padding>
-                <Insets right="30" />
-            </padding>
-
+        <HBox alignment="CENTER_RIGHT" prefHeight="60.0" spacing="15.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-width: 1 0 0 0;">
+            <padding><Insets right="30" /></padding>
             <Button text="💾 Exportovať PNG" onAction="#exportujDoPNG" prefHeight="35.0" prefWidth="150.0"
                     style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
-
             <Button text="Zavrieť" onAction="#onClose" prefHeight="35.0" prefWidth="100.0"
                     style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-background-radius: 8;" />
         </HBox>
