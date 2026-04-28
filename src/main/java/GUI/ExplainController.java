@@ -12,6 +12,7 @@ import javafx.beans.binding.DoubleBinding;
 import logic.CycleStrategy;
 
 import java.util.*;
+import javafx.geometry.Pos;
 
 public class ExplainController {
     @FXML private GridPane paneKrabice;
@@ -24,6 +25,8 @@ public class ExplainController {
     private final CycleStrategy cycleLogic = new CycleStrategy();
     private final Map<Integer, List<Integer>> boxToCycleMap = new HashMap<>();
     private final Map<List<Integer>, Color> cycleColorMap = new HashMap<>();
+    // new: map cycles to stable integer ids for tooltips
+    private final Map<List<Integer>, Integer> cycleIdMap = new HashMap<>();
 
     private List<Integer> poslednaMapaKrabic;
 
@@ -204,18 +207,23 @@ public class ExplainController {
         paneKrabice.getChildren().clear();
         boxToCycleMap.clear();
         cycleColorMap.clear();
+        cycleIdMap.clear();
         txtAreaCykly.clear();
 
         String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
         int maxDlzkaCyklu = 0;
 
-        if (vybrana.contains("Cyklická")) {
+        String lower = vybrana == null ? "" : vybrana.toLowerCase();
+
+        if (lower.contains("cyklick")) {
             List<List<Integer>> cykly = cycleLogic.najdiVsetkyCykly(poslednaMapaKrabic);
             Random rnd = new Random();
 
+            int cid = 1; // cycle id counter
             for (List<Integer> cyklus : cykly) {
                 Color farba = Color.hsb(rnd.nextInt(360), 0.5, 0.9);
                 cycleColorMap.put(cyklus, farba);
+                cycleIdMap.put(cyklus, cid++);
 
                 if (cyklus.size() > maxDlzkaCyklu) maxDlzkaCyklu = cyklus.size();
 
@@ -230,12 +238,41 @@ public class ExplainController {
             lblStatus.setText(prezili ? "PREŽILI" : "ZOMRELI");
             lblStatus.setTextFill(prezili ? Color.GREEN : Color.RED);
 
-        } else {
-            // ✅ všetky ostatné (vrátane hybrid)
+        } else if (lower.contains("hybrid")) {
+            // For hybrid we still compute cycles so they are visible, but the overall
+            // simulation result is handled elsewhere; here we only display cycles.
+            List<List<Integer>> cykly = cycleLogic.najdiVsetkyCykly(poslednaMapaKrabic);
+            Random rnd = new Random();
+
+            int cid = 1;
+            for (List<Integer> cyklus : cykly) {
+                Color farba = Color.hsb(rnd.nextInt(360), 0.5, 0.9);
+                cycleColorMap.put(cyklus, farba);
+                cycleIdMap.put(cyklus, cid++);
+
+                if (cyklus.size() > maxDlzkaCyklu) maxDlzkaCyklu = cyklus.size();
+
+                for (Integer i : cyklus) {
+                    boxToCycleMap.put(i, cyklus);
+                }
+
+                txtAreaCykly.appendText("Dĺžka " + cyklus.size() + ": " + cyklus + "\n");
+            }
+
+            // indicate hybrid default textual status (keeps previous behaviour)
             lblStatus.setText("VÝSLEDOK: ZLYHANIE (≈ 0 %)");
             lblStatus.setTextFill(Color.RED);
 
-            if (vybrana.contains("vylúčenie")) {
+            if (lower.contains("vylúčenie") || lower.contains("vyluc") || lower.contains("vyl")) {
+                txtAreaCykly.setText("Krabice 0-9 sú zakázané.");
+            }
+
+        } else {
+            // ✅ všetky ostatné
+            lblStatus.setText("VÝSLEDOK: ZLYHANIE (≈ 0 %)");
+            lblStatus.setTextFill(Color.RED);
+
+            if (lower.contains("vylúčenie") || lower.contains("vyluc") || lower.contains("vyl")) {
                 txtAreaCykly.setText("Krabice 0-9 sú zakázané.");
             }
         }
@@ -264,8 +301,8 @@ public class ExplainController {
         // normalize strategy string for robust checks
         String s = strategia == null ? "" : strategia.toLowerCase();
 
+        List<Integer> cyklus = boxToCycleMap.get(index);
         if (s.contains("cyklick")) {
-            List<Integer> cyklus = boxToCycleMap.get(index);
             rect.setFill(cycleColorMap.getOrDefault(cyklus, Color.LIGHTGRAY));
         } else if (s.contains("vyl") || s.contains("vyluc") || s.contains("vylú")) {
             // match both accented and unaccented variants of "vylúčenie"
@@ -275,8 +312,8 @@ public class ExplainController {
             rect.setFill(index % 2 != 0 ? Color.web("#e67e22") : Color.web("#ecf0f1"));
         } else if (s.contains("pár") || s.contains("par")) {
             rect.setFill(index % 2 == 0 ? Color.web("#2ecc71") : Color.web("#ecf0f1"));
-        } else if (s.contains("hybrid")) { // ✅ NEW
-            rect.setFill(index < 50 ? Color.web("#9b59b6") : Color.web("#f1c40f"));
+        } else if (s.contains("hybrid")) { // Hybrid: show cycle color as main background
+            rect.setFill(cycleColorMap.getOrDefault(cyklus, Color.web("#ecf0f1")));
         } else {
             rect.setFill(Color.web("#ecf0f1"));
         }
@@ -289,7 +326,6 @@ public class ExplainController {
         }, sizeBinding));
 
         // Set text color: white for excluded boxes when exclusion strategy is selected, otherwise default
-        // reuse previously computed lowercase 's' variable
         if ((s.contains("vyl") || s.contains("vyluc") || s.contains("vylú")) && index < 10) {
             t.setFill(Color.WHITE);
         } else {
@@ -297,6 +333,40 @@ public class ExplainController {
         }
 
         stack.getChildren().addAll(rect, t);
+
+        // For hybrid strategy add a subtle inner stripe instead of a corner marker
+        if (s.contains("hybrid")) {
+            Rectangle stripe = new Rectangle();
+            stripe.widthProperty().bind(sizeBinding.multiply(0.9));
+            stripe.heightProperty().bind(sizeBinding.multiply(0.16));
+            stripe.setArcWidth(6);
+            stripe.setArcHeight(6);
+            // white semi-transparent fill to keep cycle color visible
+            stripe.setFill(Color.web("#ffffff", 0.6));
+            // stroke color indicates partition: index < 50 = green (cyclic part), >=50 = yellow (random part)
+            stripe.setStroke(index < 50 ? Color.web("#2ecc71") : Color.web("#f1c40f"));
+            stripe.setStrokeWidth(1.6);
+            StackPane.setAlignment(stripe, Pos.TOP_CENTER);
+            StackPane.setMargin(stripe, new javafx.geometry.Insets(4,0,0,0));
+            stack.getChildren().add(stripe);
+        }
+
+        // Tooltip for cyclic and hybrid strategies: show cycle id, cycle size and hybrid part (if hybrid)
+        if (s.contains("cyklick") || s.contains("hybrid")) {
+            StringBuilder tip = new StringBuilder();
+            if (cyklus != null) {
+                int cid = cycleIdMap.getOrDefault(cyklus, -1);
+                tip.append("Patrí do cyklu č.: ").append(cid == -1 ? "?" : cid).append("\n");
+                tip.append("Veľkosť cyklu: ").append(cyklus.size()).append("\n");
+            } else {
+                tip.append("Bez cyklu (nie sú vypočítané cykly)\n");
+            }
+            if (s.contains("hybrid")) {
+                tip.append("Časť hybridu: ").append(index < 50 ? "CYKLICKÁ" : "NÁHODNÁ");
+            }
+            Tooltip tooltip = new Tooltip(tip.toString());
+            Tooltip.install(stack, tooltip);
+        }
 
         stack.setOnMouseClicked(e ->
                 lblInfo.setText("Krabica č. " + index + " obsahuje lístok väzňa č. " + obsah)
