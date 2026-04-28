@@ -1,0 +1,164 @@
+@startuml
+' Nastavenie, aby sa namiesto ikoniek zobrazovali znaky +, - a #
+skinparam classAttributeIconSize 0
+' Zlepšenie vizuálu šípok a rozloženia
+skinparam linetype ortho
+
+package "logic" {
+    interface Strategy {
+        + String nazovStrategie()
+        + int pocitaj(int pocetVaznov, int maxPokusov)
+        + {default} int getNajdlhsiCyklusPoslednejSimulacie()
+        + {default} int getMaxUspesnychVHistorii()
+        + {default} void resetStats()
+    }
+
+    class CycleStrategy implements Strategy {
+        - int poslednyMaxCyklus
+        - int maxUspesnychVHistorii
+        + String nazovStrategie()
+        + void resetStats()
+        + int getMaxUspesnychVHistorii()
+        + int getNajdlhsiCyklusPoslednejSimulacie()
+        + List<Integer> generujKrabice(int pocetKrabic)
+        + int pocitaj(int pocetVaznov, int limitPokusov)
+        + List<List<Integer>> najdiVsetkyCykly(List<Integer> krabice)
+        + List<Integer> ziskajDlzkyCyklov(List<Integer> krabice)
+    }
+
+    class RandomStrategy implements Strategy {
+        - int maxUspesnychVHistorii
+        + String nazovStrategie()
+        + int pocitaj(int pocetVaznov, int maxPokusov)
+        - boolean simulujNahodnyVyber(List<Integer> krabice, int hladaneCislo, int maxPokusov, Random rnd)
+        + int getMaxUspesnychVHistorii()
+        + int getNajdlhsiCyklusPoslednejSimulacie()
+        + void resetStats()
+    }
+
+    class HybridStrategy implements Strategy {
+        - int maxUspesnychVHistorii
+        + String nazovStrategie()
+        + void resetStats()
+        + int getMaxUspesnychVHistorii()
+        - List<Integer> generujKrabice(int n)
+        + int pocitaj(int pocetVaznov, int limitPokusov)
+    }
+
+    class ExclusionStrategy implements Strategy {
+        - int pocetVylucenych
+        - int maxUspesnychVHistorii
+        + String nazovStrategie()
+        + void setPocetVylucenych(int n)
+        + void resetStats()
+        + int getMaxUspesnychVHistorii()
+        + int pocitaj(int pocetVaznov, int limitPokusov)
+    }
+
+    class EvenStrategy implements Strategy {
+        + String nazovStrategie()
+        + int pocitaj(int pocetVaznov, int maxPokusov)
+    }
+
+    class OddStrategy implements Strategy {
+        + String nazovStrategie()
+        + int pocitaj(int pocetVaznov, int maxPokusov)
+    }
+}
+
+package "GUI" {
+    class Menu {
+        + void start(Stage stage)
+        + {static} void main(String[] args)
+    }
+
+    class MenuController {
+        - Button btnSimulacia <<FXML>>
+        - Button btnVysvetlenie <<FXML>>
+        + void onSimulaciaButtonClick() <<FXML>>
+        + void initialize() <<FXML>>
+        + void onVysvetlenieButtonClick() <<FXML>>
+    }
+
+    class PermutationsController {
+        - TextField tfPocetVaznov <<FXML>>
+        - TextField tfPocetPermutacii <<FXML>>
+        - TextField tfVylucit <<FXML>>
+        - Label lblVylucitErr <<FXML>>
+        - ComboBox<String> cbStrategie <<FXML>>
+        - ProgressBar progressBar <<FXML>>
+        - Button btnSpustit <<FXML>>
+        - Button btnCancel <<FXML>>
+        - VBox vboxVysledky <<FXML>>
+        - Label lblReport <<FXML>>
+        - List<Strategy> availableStrategies
+        - SimulationResult poslednyResult
+        - Task<SimulationResult> currentTask
+        + void initialize() <<FXML>>
+        + void onSpustiButtonClick() <<FXML>>
+        + void onCancelButtonClick() <<FXML>>
+        - void onZobrazGrafClick() <<FXML>>
+        + void onCloseButtonClick(ActionEvent e) <<FXML>>
+        - SimulationParams validujVstupy()
+    }
+
+    class SimulationParams <<private, static>> {
+        ~ int pocetVaznov
+        ~ int permutations
+        ~ SimulationParams(int p, int perm)
+    }
+
+    class SimulationResult <<private, static>> {
+        ~ double sancaPrezitia
+        ~ double priemer
+        ~ int totalRuns
+        ~ Map<Integer,Integer> celkovaDistribuciaCyklov
+        ~ SimulationResult(long uspesni, List<Integer> data, ...)
+    }
+
+    class ExplainController {
+        - GridPane paneKrabice <<FXML>>
+        - ComboBox<String> cbStrategieExplain <<FXML>>
+        - TextArea txtVysvetlenie <<FXML>>
+        - TextArea txtAreaCykly <<FXML>>
+        - CycleStrategy cycleLogic
+        + void initialize() <<FXML>>
+        + void onStrategiaChanged() <<FXML>>
+        + void generujNovuMapu() <<FXML>>
+        - void prekresliMriezku()
+        + void onClose(ActionEvent event) <<FXML>>
+    }
+
+    class GraphController {
+        - Pane mainContainer <<FXML>>
+        - PieChart pieSimulation <<FXML>>
+        - BarChart histogram <<FXML>>
+        + void initialize() <<FXML>>
+        + void nastavData(...)
+        + void exportujDoPNG() <<FXML>>
+        + void onClose(ActionEvent event) <<FXML>>
+    }
+}
+
+' --- VZŤAHY ---
+
+' Dedičnosť z JavaFX (Externá trieda)
+class javafx.application.Application
+javafx.application.Application <|-- Menu
+
+' Navigácia v GUI
+Menu ..> MenuController : spúšťa cez FXML
+MenuController ..> PermutationsController : otvára
+MenuController ..> ExplainController : otvára
+PermutationsController ..> GraphController : odovzdáva dáta (cez nastavData)
+
+' Logické väzby GUI -> Logic
+PermutationsController o-- Strategy : obsahuje zoznam dostupných
+ExplainController o-- CycleStrategy : používa na výpočet cyklov v mriežke
+ExplainController ..> Strategy : textovo vysvetľuje princípy
+
+' Vnútorné triedy (Ownership)
+PermutationsController +-- SimulationParams
+PermutationsController +-- SimulationResult
+
+@enduml

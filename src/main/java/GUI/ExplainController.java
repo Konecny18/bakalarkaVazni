@@ -107,13 +107,13 @@ public class ExplainController {
                 sb.append("To znamená, že úspech jedného väzňa nijako nepomáha ostatným.\n\n");
 
                 sb.append("👉 Matematicky:\n");
-                sb.append("Každý väzeň má pravdepodobnosť 0.5 nájsť svoje číslo.\n\n");
+                sb.append("Každý väzeň má pravdepodobnosť (0.5) teda 50 % nájsť svoje číslo.\n\n");
 
                 sb.append("👉 Ale skupina potrebuje:\n");
                 sb.append("Všetci musia uspieť naraz.\n\n");
 
                 sb.append("📊 Výpočet:\n");
-                sb.append("0.5^100 = extrémne malé číslo (~10^-30)\n\n");
+                sb.append("0.5^100 = extrémne malé číslo (~10^-30), skoro 0\n\n");
 
                 sb.append("🖼️ PREPOJENIE NA OBRÁZOK:\n");
                 sb.append("Aj keď obrázok obsahuje cykly (štruktúru), táto stratégia ich ignoruje.\n\n");
