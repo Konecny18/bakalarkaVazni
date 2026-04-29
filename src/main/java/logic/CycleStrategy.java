@@ -5,12 +5,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Implementácia Cyklickej stratégie pre problém 100 väzňov.
- * Využíva matematický rozklad náhodnej permutácie na disjunktné cykly.
+ * Implementácia cyklickej stratégie pre problém väzňov a krabíc.
+ * Využíva rozklad permutácie na disjunktné cykly a vyhodnocuje úspech podľa dĺžok cyklov.
  */
 public class CycleStrategy implements Strategy {
 
+    /** Dĺžka najdlhšieho cyklu z poslednej simulácie. */
     private int poslednyMaxCyklus = 0;
+    /** Historický rekord úspešných väzňov v neúplných behách. */
     private int maxUspesnychVHistorii = 0;
 
     @Override
@@ -36,6 +38,8 @@ public class CycleStrategy implements Strategy {
 
     /**
      * Generuje náhodnú permutáciu lístkov v krabiciach.
+     * @param pocetKrabic počet krabíc (väzňov)
+     * @return zoznam, kde index = krabica a hodnota = číslo na lístku
      */
     public List<Integer> generujKrabice(int pocetKrabic) {
         List<Integer> krabice = new ArrayList<>();
@@ -48,6 +52,10 @@ public class CycleStrategy implements Strategy {
 
     /**
      * Hlavná výpočtová metóda pre jednu simuláciu.
+     * Rozklad permutácie na cykly a spočítanie úspešných väzňov podľa dĺžok cyklov.
+     * @param pocetVaznov počet väzňov / krabíc
+     * @param limitPokusov maximálny počet otvorení krabíc pre jedného väzňa
+     * @return počet väzňov, ktorí našli svoje číslo
      */
     @Override
     public int pocitaj(int pocetVaznov, int limitPokusov) {
@@ -61,8 +69,8 @@ public class CycleStrategy implements Strategy {
             int dlzka = cyklus.size();
             if (dlzka > maxDlzkaCyklu) maxDlzkaCyklu = dlzka;
 
-            // V cyklickej stratégii platí: ak je dĺžka cyklu pod limitom (limitPokusov),
-            // všetci väzni v tomto konkrétnom cykle nájdu svoje číslo.
+            // V cyklickej stratégii: ak je dĺžka cyklu <= limitPokusov,
+            // všetci väzni v tomto cykle nájdu svoje číslo.
             if (dlzka <= limitPokusov) {
                 uspesniVazni += dlzka;
             }
@@ -70,7 +78,7 @@ public class CycleStrategy implements Strategy {
 
         this.poslednyMaxCyklus = maxDlzkaCyklu;
 
-        // Sledovanie rekordu úspešnosti v neúspešných pokusoch (pre reporty)
+        // Sledovanie rekordu úspešnosti v neúspešných behách
         if (uspesniVazni < pocetVaznov) {
             if (uspesniVazni > maxUspesnychVHistorii) {
                 maxUspesnychVHistorii = uspesniVazni;
@@ -81,8 +89,9 @@ public class CycleStrategy implements Strategy {
     }
 
     /**
-     * Pomocná metóda na rozklad permutácie na zoznamy cyklov.
-     * Používa sa na výpočet úspešnosti simulácie.
+     * Pomocná metóda na rozklad permutácie na zoznam cyklov.
+     * @param krabice permutácia reprezentovaná ako zoznam
+     * @return zoznam cyklov, každý cyklus je zoznam indexov
      */
     public List<List<Integer>> najdiVsetkyCykly(List<Integer> krabice) {
         int pocetKrabic = krabice.size();
@@ -105,8 +114,10 @@ public class CycleStrategy implements Strategy {
     }
 
     /**
-     * NOVÁ METÓDA pre prepojenie s grafom (GraphController).
-     * Vracia iba dĺžky jednotlivých cyklov bez zoznamu prvkov.
+     * Pomocná metóda pre prepojenie s grafom (GraphController).
+     * Vracia iba dĺžky jednotlivých cyklov.
+     * @param krabice permutácia
+     * @return zoznam dĺžok cyklov
      */
     public List<Integer> ziskajDlzkyCyklov(List<Integer> krabice) {
         List<Integer> dlzky = new ArrayList<>();

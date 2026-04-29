@@ -2,6 +2,10 @@ package logic;
 
 import java.util.*;
 
+/**
+ * Stratégia vylúčenia: simulácia, kde prvých N krabíc je kolektívne vylúčených
+ * (žiadny väzeň ich neotvorí). Vhodné na testovanie vplyvu odstránenia časti priestoru.
+ */
 public class ExclusionStrategy implements Strategy {
     private int pocetVylucenych = 0;
     private int maxUspesnychVHistorii = 0;
@@ -11,6 +15,10 @@ public class ExclusionStrategy implements Strategy {
         return "Spoločné vylúčenie (Ignoruje " + pocetVylucenych + " krabíc)";
     }
 
+    /**
+     * Nastaví počet počiatočných krabíc, ktoré budú vylúčené (indexy 0..n-1).
+     * @param n počet vylúčených krabíc
+     */
     public void setPocetVylucenych(int n) {
         this.pocetVylucenych = n;
     }
@@ -25,6 +33,12 @@ public class ExclusionStrategy implements Strategy {
         return maxUspesnychVHistorii;
     }
 
+    /**
+     * Simulácia, v ktorej sú prvé {@code pocetVylucenych} krabíc vylúčené zo všetkých hľadaní.
+     * @param pocetVaznov celkový počet väzňov/krabíc
+     * @param limitPokusov maximálny počet otvorení krabíc na väzňa
+     * @return počet väzňov, ktorí našli svoje číslo
+     */
     @Override
     public int pocitaj(int pocetVaznov, int limitPokusov) {
         List<Integer> krabice = new ArrayList<>();

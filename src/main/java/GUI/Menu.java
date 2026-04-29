@@ -7,6 +7,9 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * Hlavný vstup do aplikácie. Načíta hlavné menu (FXML) a zobrazí primárne okno.
+ */
 public class Menu extends Application {
     @Override
     public void start(Stage stage) throws IOException {
@@ -19,6 +22,10 @@ public class Menu extends Application {
         stage.show();
     }
 
+    /**
+     * Spustenie JavaFX aplikácie.
+     * @param args argumenty príkazového riadku
+     */
     public static void main(String[] args) {
         launch();
     }

@@ -11,6 +11,10 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * Controller hlavného menu. Zodpovedá za otváranie dialógov pre nastavenie simulácie
+ * a za otvorenie vysvetľovacích/prevádzkových okien.
+ */
 public class MenuController {
     @FXML
     private Button btnSimulacia; // Toto musí mať rovnaké fx:id ako v FXML
@@ -18,6 +22,9 @@ public class MenuController {
     @FXML
     private Button btnVysvetlenie; // A toto tiež
 
+    /**
+     * Otvorí modálne okno pre nastavenie permutácií/simulácie.
+     */
     @FXML
     public void onSimulaciaButtonClick() {
         System.out.println("Otvorím okno simulácie...");
@@ -44,6 +51,9 @@ public class MenuController {
         btnVysvetlenie.setOnMouseExited(e -> btnVysvetlenie.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;"));
     }
 
+    /**
+     * Otvorí modálne okno s vizualizáciou a vysvetlením permutácií.
+     */
     @FXML
     public void onVysvetlenieButtonClick() {
         System.out.println("Otvorím okno vizualizácie cyklov...");

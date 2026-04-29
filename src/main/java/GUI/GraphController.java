@@ -3,7 +3,6 @@ package GUI;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
@@ -19,10 +18,13 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.awt.Desktop;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javax.imageio.ImageIO;
 
+/**
+ * Kontrolér, ktorý sa stará o vykresľovanie štatistických vizualizácií (koláčové grafy a histogramy)
+ * pre výsledky simulácie. Dostáva agregované dáta z `PermutationsController` a plní JavaFX grafy.
+ * Poskytuje aj export do PNG.
+ */
 public class GraphController {
 
     @FXML private Pane mainContainer;
@@ -52,16 +54,18 @@ public class GraphController {
             cycleHistogram.setAnimated(false);
         }
 
-        // Ensure cycle section is hidden by default; controller will reveal it for cyclic strategies
+        // Skryť sekciu pre cykly štandardne; controller ju zobrazí len pre cyklické stratégie
         if (cycleSection != null) { cycleSection.setVisible(false); cycleSection.setManaged(false); }
 
     }
 
     /**
-     *
+     * Nastaví a vykreslí všetky potrebné grafy.
+     * @param runResults zoznam výsledkov (úspešných väzňov) pre jednotlivé behy
+     * @param nameranaSancaPercent meraná úspešnosť v percentách (0..100)
+     * @param nazovStrategie názov stratégie (slúži na určenie, či ide o cyklickú stratégiu)
+     * @param akumulovaneCykly voliteľná agregovaná distribúcia dĺžok cyklov (dĺžka -> počet výskytov)
      */
-    // V GraphController.java zmeň metódu nastavData:
-
     public void nastavData(List<Integer> runResults, double nameranaSancaPercent, String nazovStrategie, Map<Integer, Integer> akumulovaneCykly) {
         if (lblSimTitle != null) lblSimTitle.setText("Simulácia: " + nazovStrategie);
 
@@ -118,38 +122,6 @@ public class GraphController {
         }
     }
 
-    private void populateCycleHistogram(List<Integer> cycleLengths) {
-        cycleHistogram.getData().clear();
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-
-        // Spočítame výskyty dĺžok (TreeMap nám ich automaticky zoradí podľa dĺžky 1, 2, 3...)
-        Map<Integer, Integer> freq = new TreeMap<>();
-        for (int len : cycleLengths) {
-            freq.put(len, freq.getOrDefault(len, 0) + 1);
-        }
-
-        for (Map.Entry<Integer, Integer> entry : freq.entrySet()) {
-            series.getData().add(new XYChart.Data<>(entry.getKey().toString(), entry.getValue()));
-        }
-
-        cycleHistogram.getData().add(series);
-
-        // Stylovanie stĺpcov cyklov
-        Platform.runLater(() -> {
-            for (XYChart.Data<String, Number> data : series.getData()) {
-                Node node = data.getNode();
-                if (node != null) {
-                    int dlzka = Integer.parseInt(data.getXValue());
-                    // Ak je cyklus > 50, je to "smrtiaci" cyklus (červená), inak zelená
-                    String color = (dlzka > 50) ? FAIL_COLOR : SUCCESS_COLOR;
-                    node.setStyle("-fx-bar-fill: " + color + ";");
-
-                    Tooltip t = new Tooltip("Dĺžka cyklu: " + dlzka + "\nPočet v permutácii: " + data.getYValue());
-                    Tooltip.install(node, t);
-                }
-            }
-        });
-    }
 
     private void populateHistogram(List<Integer> runs) {
         histogram.getData().clear();

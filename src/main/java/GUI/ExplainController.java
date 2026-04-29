@@ -14,6 +14,11 @@ import logic.CycleStrategy;
 import java.util.*;
 import javafx.geometry.Pos;
 
+/**
+ * Kontrolér pre okno vysvetlenia/vizualizácie. Vykresľuje mriežku 10x10 krabíc
+ * a zvýrazňuje cykly podľa vybratej stratégie. Poskytuje tooltipy a interaktívne
+ * kliknutie pre zobrazenie informácií.
+ */
 public class ExplainController {
     @FXML private GridPane paneKrabice;
     @FXML private ComboBox<String> cbStrategieExplain;
@@ -25,7 +30,7 @@ public class ExplainController {
     private final CycleStrategy cycleLogic = new CycleStrategy();
     private final Map<Integer, List<Integer>> boxToCycleMap = new HashMap<>();
     private final Map<List<Integer>, Color> cycleColorMap = new HashMap<>();
-    // new: map cycles to stable integer ids for tooltips
+    // nové: mapovanie cyklov na stabilné číselné ID pre tooltipy
     private final Map<List<Integer>, Integer> cycleIdMap = new HashMap<>();
 
     private List<Integer> poslednaMapaKrabic;
@@ -35,7 +40,7 @@ public class ExplainController {
         cbStrategieExplain.getItems().addAll(
                 "Cyklická stratégia",
                 "Náhodná stratégia",
-                "Hybridná stratégia", // ✅ NEW
+                "Hybridná stratégia", // ✅ NOVÉ
                 "Stratégia párnych čísel",
                 "Stratégia nepárnych čísel",
                 "Spoločné vylúčenie (prvých 10)"
@@ -48,6 +53,10 @@ public class ExplainController {
         onStrategiaChanged();
     }
 
+    /**
+     * Volané pri zmene stratégie. Aktualizuje text vysvetlenia
+     * a vygeneruje novú mapu krabíc podľa vybranej stratégie.
+     */
     @FXML
     public void onStrategiaChanged() {
         String vybrana = cbStrategieExplain.getSelectionModel().getSelectedItem();
@@ -195,6 +204,10 @@ public class ExplainController {
         generujNovuMapu();
     }
 
+    /**
+     * Vygeneruje novú náhodnú mapu krabíc pomocou CycleStrategy a spustí prekreslenie
+     * mriežky na zobrazenie novej mapy.
+     */
     @FXML
     public void generujNovuMapu() {
         poslednaMapaKrabic = cycleLogic.generujKrabice(100);
@@ -239,8 +252,8 @@ public class ExplainController {
             lblStatus.setTextFill(prezili ? Color.GREEN : Color.RED);
 
         } else if (lower.contains("hybrid")) {
-            // For hybrid we still compute cycles so they are visible, but the overall
-            // simulation result is handled elsewhere; here we only display cycles.
+            // Pre hybrid stále počítame cykly, aby boli viditeľné, ale celkový
+            // výsledok simulácie sa spracováva inde; tu len zobrazujeme cykly.
             List<List<Integer>> cykly = cycleLogic.najdiVsetkyCykly(poslednaMapaKrabic);
             Random rnd = new Random();
 
@@ -259,7 +272,7 @@ public class ExplainController {
                 txtAreaCykly.appendText("Dĺžka " + cyklus.size() + ": " + cyklus + "\n");
             }
 
-            // indicate hybrid default textual status (keeps previous behaviour)
+            // indikácia predvoleného textového stavu hybridu (uchováva predchádzajúce správanie)
             lblStatus.setText("VÝSLEDOK: ZLYHANIE (≈ 0 %)");
             lblStatus.setTextFill(Color.RED);
 
@@ -298,7 +311,7 @@ public class ExplainController {
         rect.setArcHeight(8);
         rect.setStroke(Color.web("#bdc3c7"));
 
-        // normalize strategy string for robust checks
+        // normalizujeme reťazec stratégie pre robustné porovnávanie
         String s = strategia == null ? "" : strategia.toLowerCase();
 
         List<Integer> cyklus = boxToCycleMap.get(index);
@@ -377,6 +390,9 @@ public class ExplainController {
         return stack;
     }
 
+    /**
+     * Zatvorí okno aplikácie.
+     */
     @FXML
     public void onClose(javafx.event.ActionEvent event) {
         ((javafx.stage.Stage)((javafx.scene.Node)event.getSource()).getScene().getWindow()).close();

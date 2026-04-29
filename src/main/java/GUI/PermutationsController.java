@@ -17,6 +17,11 @@ import javafx.event.ActionEvent;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Controller pre dialóg permutácií / simulácie.
+ * Zodpovedá za validáciu vstupov, spustenie simulácií na pozadí (Task)
+ * a prezentáciu textového reportu a otvorenie grafického zobrazenia.
+ */
 public class PermutationsController {
 
     @FXML private TextField tfPocetVaznov, tfPocetPermutacii, tfVylucit;
@@ -90,6 +95,10 @@ public class PermutationsController {
         }
     }
 
+    /**
+     * Handler pre tlačidlo "Spusti". Overí vstupy, nakonfiguruje vybranú stratégiu
+     * (napr. počet vylúčených) a spustí simuláciu na pozadí a aktualizuje UI.
+     */
     @FXML
     public void onSpustiButtonClick() {
         try {
@@ -221,6 +230,9 @@ public class PermutationsController {
         if (currentTask != null) currentTask.cancel();
     }
 
+    /**
+     * Otvorí grafické okno s výsledkami pre poslednú simuláciu.
+     */
     @FXML
     private void onZobrazGrafClick() {
         if (poslednyResult == null) return;
@@ -346,7 +358,7 @@ public class PermutationsController {
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Text Files", "*.txt"));
         java.io.File f = chooser.showSaveDialog(btnExportReport.getScene().getWindow());
         if (f == null) return;
-        try (java.io.PrintWriter pw = new java.io.PrintWriter(f, "UTF-8")) {
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(f, java.nio.charset.StandardCharsets.UTF_8)) {
             pw.print(txtReport.getText());
             new Alert(Alert.AlertType.INFORMATION, "Report uložený: " + f.getAbsolutePath()).showAndWait();
         } catch (Exception ex) {

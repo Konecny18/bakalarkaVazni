@@ -2,6 +2,10 @@ package logic;
 
 import java.util.*;
 
+/**
+ * Hybridná stratégia: prvá polovica väzňov používa cyklickú stratégiu,
+ * druhá polovica používa náhodný výber. Použiteľné na skúmanie miešaného správania.
+ */
 public class HybridStrategy implements Strategy {
 
     private int maxUspesnychVHistorii = 0;
@@ -30,6 +34,13 @@ public class HybridStrategy implements Strategy {
         return krabice;
     }
 
+    /**
+     * Spustí hybridnú simuláciu pre jednu permutáciu.
+     * Prvá polovica väzňov sleduje cykly, druhá polovica náhodne otvára krabice.
+     * @param pocetVaznov počet väzňov/krabíc
+     * @param limitPokusov maximálny počet otvorení krabíc na väzňa
+     * @return počet väzňov, ktorí našli svoje číslo
+     */
     @Override
     public int pocitaj(int pocetVaznov, int limitPokusov) {
         List<Integer> krabice = generujKrabice(pocetVaznov);
@@ -79,7 +90,7 @@ public class HybridStrategy implements Strategy {
             }
         }
 
-        // tracking rekordu (rovnako ako máš inde)
+        // Sledovanie rekordu
         if (uspesni < pocetVaznov) {
             if (uspesni > maxUspesnychVHistorii) {
                 maxUspesnychVHistorii = uspesni;
