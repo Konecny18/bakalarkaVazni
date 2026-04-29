@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Main-Class: GUI.AppLauncher
+Class-Path: javafx-graphics-19.0.2-win.jar javafx-base-19.0.2.jar javafx
+ -fxml-19.0.2-win.jar javafx-graphics-19.0.2.jar javafx-controls-19.0.2-
+ win.jar javafx-base-19.0.2-win.jar javafx-fxml-19.0.2.jar javafx-contro
+ ls-19.0.2.jar
+

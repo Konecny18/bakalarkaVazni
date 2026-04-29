@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="vazniSimulacia:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/vazniSimulacia_jar</output-path>
+    <root id="archive" name="vazniSimulacia_jar.jar">
+      <element id="module-output" name="vazniSimulacia" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-base_19_0_2" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-base_win_19_0_2" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-controls_19_0_2" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-controls_win_19_0_2" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-fxml_19_0_2" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-fxml_win_19_0_2" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-graphics_19_0_2" />
+      <element id="artifact" artifact-name="Maven__org_openjfx_javafx-graphics_win_19_0_2" />
+    </root>
+  </artifact>
+</component>

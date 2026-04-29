@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Maven__org_openjfx_javafx-fxml_win_19_0_2">
+    <output-path>$PROJECT_DIR$/out/artifacts/Maven__org_openjfx_javafx_fxml_win_19_0_2</output-path>
+    <root id="archive" name="Maven__org_openjfx_javafx-fxml_win_19_0_2.jar">
+      <element id="library" level="project" name="Maven: org.openjfx:javafx-fxml:win:19.0.2" />
+    </root>
+  </artifact>
+</component>
