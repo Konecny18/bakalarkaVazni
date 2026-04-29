@@ -1,6 +1,7 @@
 package GUI;
 
 import javafx.concurrent.Task;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -24,7 +25,9 @@ public class PermutationsController {
     @FXML private ProgressBar progressBar;
     @FXML private Button btnSpustit, btnCancel;
     @FXML private VBox vboxVysledky;
-    @FXML private Label lblReport;
+    @FXML private javafx.scene.control.TextArea txtReport;
+    @FXML private ScrollPane rootScroll;
+    @FXML private Button btnExportReport;
 
     private final List<Strategy> availableStrategies = new ArrayList<>();
     private SimulationResult poslednyResult;
@@ -115,6 +118,15 @@ public class PermutationsController {
             btnSpustit.setDisable(true);
             btnCancel.setVisible(true);
             vboxVysledky.setVisible(false);
+            if (txtReport != null) {
+                txtReport.clear();
+                txtReport.setPrefHeight(300); // larger default while running
+            }
+
+            // Ensure we unbind any previous binding before setting progress
+            if (progressBar.progressProperty().isBound()) {
+                progressBar.progressProperty().unbind();
+            }
             progressBar.setProgress(0);
             progressBar.setVisible(true);
 
@@ -161,13 +173,32 @@ public class PermutationsController {
                 }
             };
 
+            // Ensure cancellation also cleans up the UI
+            currentTask.setOnCancelled(e -> finishUI());
+
             progressBar.progressProperty().bind(currentTask.progressProperty());
 
             currentTask.setOnSucceeded(e -> {
                 poslednyResult = currentTask.getValue();
                 poslednaStrategiaNazov = selected.nazovStrategie();
                 posledneRawData = new ArrayList<>(runResults);
-                lblReport.setText(generujReport(poslednyResult, poslednaStrategiaNazov, params));
+                if (txtReport != null) txtReport.setText(generujReport(poslednyResult, poslednaStrategiaNazov, params));
+                // Adjust TextArea height relative to current window so user sees more of the report by default
+                if (txtReport != null) {
+                    Platform.runLater(() -> {
+                        try {
+                            if (btnSpustit != null && btnSpustit.getScene() != null) {
+                                double winH = btnSpustit.getScene().getWindow().getHeight();
+                                double pref = Math.max(450, winH * 0.65); // 65% of window height or at least 450px
+                                txtReport.setPrefHeight(pref);
+                            }
+                        } catch (Exception ignored) {}
+                    });
+                }
+                // Scroll main scroll pane to bottom so results are visible to the user
+                if (rootScroll != null) {
+                    Platform.runLater(() -> rootScroll.setVvalue(1.0));
+                }
                 finishUI();
             });
 
@@ -218,11 +249,71 @@ public class PermutationsController {
     }
 
     private String generujReport(SimulationResult r, String meno, SimulationParams p) {
-        return String.format("📊 Stratégia: %s\n✨ Úspešnosť: %.2f%%\n👥 Priemer úspešných: %.2f",
-                meno, r.sancaPrezitia, r.priemer);
+        // Use posledneRawData (populated just before calling this) as the source for detailed stats
+        List<Integer> data = (posledneRawData == null) ? Collections.emptyList() : new ArrayList<>(posledneRawData);
+
+        int totalRuns = r != null ? r.totalRuns : data.size();
+        double mean = r != null ? r.priemer : (data.stream().mapToInt(i -> i).average().orElse(0.0));
+        double successChance = r != null ? r.sancaPrezitia : 0.0;
+
+        // Basic min/max/median/stddev
+        int min = data.stream().mapToInt(i -> i).min().orElse(0);
+        int max = data.stream().mapToInt(i -> i).max().orElse(0);
+        double median;
+        if (data.isEmpty()) median = 0.0;
+        else {
+            List<Integer> sorted = new ArrayList<>(data);
+            Collections.sort(sorted);
+            int n = sorted.size();
+            if (n % 2 == 1) median = sorted.get(n/2);
+            else median = (sorted.get(n/2 - 1) + sorted.get(n/2)) / 2.0;
+        }
+
+        double stddev = 0.0;
+        if (!data.isEmpty()) {
+            double sum = 0.0;
+            for (int v : data) sum += (v - mean) * (v - mean);
+            stddev = Math.sqrt(sum / data.size());
+        }
+
+        // Count of full successes (value == pocetVaznov) and zero successes
+        long fullSuccesses = data.stream().filter(v -> v == p.pocetVaznov).count();
+        long zeroSuccesses = data.stream().filter(v -> v == 0).count();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("📊 Stratégia: %s\n", meno));
+        sb.append(String.format("⚙️ Parametre: väzňov=%d, simulácií=%d\n", p.pocetVaznov, p.permutations));
+        sb.append(String.format("✨ Úspešnosť (percentuálne): %.2f%% (%d/%d)\n", successChance, Math.round(successChance/100.0*totalRuns), totalRuns));
+        sb.append(String.format("👥 Priemer úspešných: %.2f\n", mean));
+        sb.append(String.format("📈 Medián: %.2f    σ (stddev): %.2f\n", median, stddev));
+        sb.append(String.format("🔻 Min: %d    🔺 Max: %d\n", min, max));
+        sb.append(String.format("✅ Plne úspešných simulácií: %d (%.2f%%)\n", fullSuccesses, totalRuns>0 ? (fullSuccesses*100.0/totalRuns) : 0.0));
+        sb.append(String.format("❌ Žiadny úspech: %d (%.2f%%)\n", zeroSuccesses, totalRuns>0 ? (zeroSuccesses*100.0/totalRuns) : 0.0));
+
+        sb.append("\nStručná frekvenčná tabuľka (hodnota -> počet, top 20 najčastejších):\n");
+        Map<Integer, Long> freq = new HashMap<>();
+        for (int v : data) freq.put(v, freq.getOrDefault(v, 0L) + 1L);
+
+        // Sort by count desc, then value asc
+        List<Map.Entry<Integer, Long>> entries = new ArrayList<>(freq.entrySet());
+        entries.sort((a,b) -> { int c = Long.compare(b.getValue(), a.getValue()); return c!=0?c:Integer.compare(a.getKey(), b.getKey()); });
+
+        int limit = Math.min(20, entries.size());
+        for (int i = 0; i < limit; i++) {
+            Map.Entry<Integer, Long> e = entries.get(i);
+            sb.append(String.format("  %3d -> %d\n", e.getKey(), e.getValue()));
+        }
+        if (entries.size() > limit) sb.append(String.format("  ... +%d ďalších hodnôt\n", entries.size() - limit));
+
+        sb.append("\nPre detailnejšie vizualizácie kliknite na 'Zobraziť grafy'.");
+        return sb.toString();
     }
 
     private void finishUI() {
+        // Unbind progress property before modifying/hiding it to avoid bound-set exception
+        if (progressBar.progressProperty().isBound()) {
+            progressBar.progressProperty().unbind();
+        }
         progressBar.setVisible(false);
         btnCancel.setVisible(false);
         btnSpustit.setDisable(false);
@@ -245,6 +336,22 @@ public class PermutationsController {
     @FXML
     public void onCloseButtonClick(ActionEvent e) {
         ((Stage)((Node)e.getSource()).getScene().getWindow()).close();
+    }
+
+    @FXML
+    public void onExportReportClick() {
+        if (txtReport == null) return;
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Ulož report ako...");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        java.io.File f = chooser.showSaveDialog(btnExportReport.getScene().getWindow());
+        if (f == null) return;
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(f, "UTF-8")) {
+            pw.print(txtReport.getText());
+            new Alert(Alert.AlertType.INFORMATION, "Report uložený: " + f.getAbsolutePath()).showAndWait();
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, "Chyba pri ukladaní reportu: " + ex.getMessage()).showAndWait();
+        }
     }
 
     // --- Vnútorné triedy pre dáta ---

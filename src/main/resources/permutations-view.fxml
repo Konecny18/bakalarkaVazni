@@ -4,13 +4,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background-color: #f0f2f5;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.PermutationsController">
-      <VBox alignment="TOP_CENTER" spacing="20.0" style="-fx-background-color: #f0f2f5;">
+<!-- Root ScrollPane: allow vertical scrolling when content doesn't fit and fit to width so controls resize horizontally -->
+<ScrollPane fx:id="rootScroll" fitToWidth="true" fitToHeight="true" vbarPolicy="AS_NEEDED" hbarPolicy="AS_NEEDED" style="-fx-background-color: #f0f2f5;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.PermutationsController">
+      <VBox alignment="TOP_CENTER" spacing="20.0" style="-fx-background-color: #f0f2f5;" VBox.vgrow="ALWAYS">
          <padding>
             <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
          </padding>
 
-         <VBox spacing="25.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+         <VBox spacing="25.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);" VBox.vgrow="NEVER">
             <padding>
                <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
             </padding>
@@ -58,16 +59,22 @@
             </VBox>
          </VBox>
 
-         <VBox fx:id="vboxVysledky" spacing="15.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 15; -fx-border-color: #3498db; -fx-border-radius: 15;">
+         <!-- Results area: allow it to grow and provide an internal ScrollPane for the report text -->
+         <VBox fx:id="vboxVysledky" spacing="15.0" minHeight="450.0" prefHeight="450.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 15; -fx-border-color: #3498db; -fx-border-radius: 15;" VBox.vgrow="ALWAYS">
             <padding>
                <Insets bottom="25.0" left="40.0" right="40.0" top="25.0" />
             </padding>
 
             <Label style="-fx-font-weight: bold; -fx-font-size: 18px;" text="📊 Výsledky simulácie" />
             <Separator />
-            <Label fx:id="lblReport" maxWidth="Infinity" style="-fx-font-family: 'Monospaced'; -fx-font-size: 14px; -fx-background-color: white; -fx-padding: 15;" wrapText="true" />
-            <HBox alignment="CENTER_RIGHT">
-               <Button onAction="#onZobrazGrafClick" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" text="Zobraziť grafy" />
+
+            <!-- Replace the report label inside ScrollPane with a non-editable TextArea for proper scrolling -->
+            <TextArea fx:id="txtReport" wrapText="true" editable="false" prefRowCount="15" VBox.vgrow="ALWAYS" maxWidth="Infinity" maxHeight="Infinity"
+                      prefHeight="380.0" style="-fx-font-family: 'Monospaced'; -fx-font-size: 15px; -fx-background-color: white; -fx-padding: 12;" />
+
+            <HBox alignment="CENTER_RIGHT" spacing="10.0">
+               <Button onAction="#onZobrazGrafClick" prefHeight="40.0" prefWidth="160.0" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" text="Zobraziť grafy" />
+               <Button fx:id="btnExportReport" onAction="#onExportReportClick" prefHeight="40.0" prefWidth="160.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" text="Exportovať report" />
             </HBox>
          </VBox>
       </VBox>
