@@ -5,7 +5,7 @@ Tu je finálna verzia tvojho README.txt:
 Simulácia problému 100 väzňov (100 Prisoners Problem)
 Autor: Damián Konečný
 
-Prostredie: JavaFX, Maven, JDK 26 (podporované JDK 19+)vytvo
+Prostredie: JavaFX, Maven, JDK 26 (podporované JDK 19+)
 
 Popis projektu
 Táto aplikácia simuluje matematický problém 100 väzňov. Vizualizuje úspešnosť optimálnej stratégie založenej na hľadaní cyklov v porovnaní s náhodným výberom.
