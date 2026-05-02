@@ -47,8 +47,6 @@
                                 <yAxis><NumberAxis label="Frekvencia" /></yAxis>
                             </BarChart>
 
-
-
                             <Separator />
 
                             <!-- Cycle analysis section: will be shown only for cyclic strategy -->
