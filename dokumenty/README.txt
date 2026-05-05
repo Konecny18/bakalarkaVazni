@@ -1,39 +1,36 @@
-Jasné, upravím to tak, aby to bolo pre oponenta čo najpohodlnejšie. Pridáme tam možnosť priameho spustenia hlavnej triedy, čo je v IntelliJ často najrýchlejšia cesta.
-
-Tu je finálna verzia tvojho README.txt:
-
-Simulácia problému 100 väzňov (100 Prisoners Problem)
+Simulácia problému 100 väzňov
 Autor: Damián Konečný
 
-Prostredie: JavaFX, Maven, JDK 26 (podporované JDK 19+)
+🚀 Inštrukcie na spustenie
+Možnosť 1: Spustenie jedným klikom (Najpohodlnejšie)
+V hlavnom priečinku projektu sa nachádza súbor SPUSTI_SIMULACIU.bat.
 
-Popis projektu
-Táto aplikácia simuluje matematický problém 100 väzňov. Vizualizuje úspešnosť optimálnej stratégie založenej na hľadaní cyklov v porovnaní s náhodným výberom.
+Stačí naň dvakrát kliknúť v Prieskumníkovi Windows.
 
-Požiadavky na spustenie
-Java JDK 19 alebo novšia (odporúčaná verzia 26).
+Skript automaticky použije pribalený Maven Wrapper (mvnw), skontroluje závislosti a spustí aplikáciu.
 
-IntelliJ IDEA (alebo iné IDE s podporou Maven).
+Poznámka: Vyžaduje v systéme nastavenú premennú JAVA_HOME smerujúcu na JDK 19+.
 
-Inštrukcie na spustenie
-Možnosť 1: Priame spustenie v IDE (Najrýchlejšie)
-Otvorte projekt v IntelliJ IDEA.
+Možnosť 2: Cez Maven v IntelliJ IDEA
+Ak máte projekt otvorený vo vývojovom prostredí:
 
-V strome súborov (src/main/java/GUI/) vyhľadajte triedu Menu.
-
-Kliknite na ňu pravým tlačidlom a zvoľte Run 'Menu.main()'.
-
-Možnosť 2: Cez Maven plugin (Odporúčané pre čistý build)
-V pravom paneli IntelliJ otvorte kartu Maven.
+V pravom paneli otvorte kartu Maven.
 
 Rozkliknite: vazniSimulacia -> Plugins -> javafx -> javafx:run.
-Alternatívne v termináli: mvn javafx:run
 
-Možnosť 3: Spustenie cez pripravený artefakt
-V priečinku out/artifacts/vazniSimulacia_jar/ sa nachádza zostavený archív. Spustenie (vyžaduje správne nastavené systémové premenné pre JavaFX):
+Možnosť 3: Priame spustenie hlavnej triedy
 
-Bash:
-java -jar vazniSimulacia_jar.jar
+V strome súborov navigujte do: src/main/java/GUI/AppLauncher.java.
 
-Poznámky
-Projekt je plne modulárny (JPMS). V prípade problémov s knižnicami v IDE odporúčam vykonať Maven -> Reload Project a následne Lifecycle -> clean.
+Kliknite pravým tlačidlom na triedu a zvoľte Run 'AppLauncher.main()'.
+
+📋 Popis projektu
+Táto aplikácia simuluje známy matematický problém 100 väzňov.
+Umožňuje používateľovi vizualizovať rôzne stratégie (hľadanie cyklov, náhodný výber, párne/nepárne čísla) a porovnávať ich úspešnosť pomocou generovaných grafov a štatistík.
+
+🛠 Technické požiadavky
+Java JDK: 19 alebo novšia (projekt bol vyvíjaný v JDK 19.0.1).
+
+Závislosti: JavaFX (riešené automaticky cez Maven).
+
+Modulárny systém: Projekt využíva Java Module System (module-info.java).
