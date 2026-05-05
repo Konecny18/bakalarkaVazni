@@ -50,6 +50,9 @@ public class RandomStrategy implements Strategy {
         return uspesniVazni;
     }
 
+    /**
+     * Pomocná metóda: simuluje náhodné otváranie bez opakovania indexov.
+     */
     private boolean simulujNahodnyVyber(List<Integer> krabice, int hladaneCislo, int maxPokusov, Random rnd) {
         int n = krabice.size();
         List<Integer> indexy = new ArrayList<>();
@@ -65,17 +68,13 @@ public class RandomStrategy implements Strategy {
     }
 
     /**
-     * Vráti historický rekord úspešných väzňov pozorovaný v minulosti.
+     * Vráti historický rekord úspešných väzňov pozorovaných v minulosti.
      * @return maximálny počet úspechov v histórii
      */
     public int getMaxUspesnychVHistorii() {
         return maxUspesnychVHistorii;
     }
 
-    @Override
-    public int getNajdlhsiCyklusPoslednejSimulacie() {
-        return 0;
-    }
 
     /**
      * Resetnúť interné štatistiky.

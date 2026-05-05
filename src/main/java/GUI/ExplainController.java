@@ -35,6 +35,11 @@ public class ExplainController {
 
     private List<Integer> poslednaMapaKrabic;
 
+     /**
+     * Inicializácia kontroléra: naplní combobox stratégiami, nastaví listenery
+     * ktoré zabezpečujú dynamické prekresľovanie mriežky pri zmene veľkosti okna
+     * a inicializuje počiatočný stav (vybraná stratégia = prvá položka).
+     */
     @FXML
     public void initialize() {
         cbStrategieExplain.getItems().addAll(
@@ -214,6 +219,11 @@ public class ExplainController {
         prekresliMriezku();
     }
 
+    /**
+     * Prekreslí mriežku krabíc podľa poslednej vygenerovanej mapy.
+     * Metóda aktualizuje farebné mapovanie cyklov, textovú oblasť s popisom cyklov
+     * a stavový štítok úspechu/zmrznutia.
+     */
     private void prekresliMriezku() {
         if (poslednaMapaKrabic == null) return;
 
@@ -295,6 +305,14 @@ public class ExplainController {
         }
     }
 
+    /**
+     * Vytvorí vizuálnu reprezentáciu jednej krabice (štvorec s indexom), bindne veľkosť
+     * podľa veľkosti gridu a aplikuje farby/tooltipy v závislosti od zvolenej stratégie.
+     * @param index index krabice (0..99)
+     * @param obsah číslo na lístku v danej krabici
+     * @param strategia názov zvolenej stratégie (na rozhodovanie o zobrazení)
+     * @return StackPane obsahujúci Rectangle + Text (+ voliteľné prvky ako stripe)
+     */
     private StackPane vytvorKrabicu(int index, int obsah, String strategia) {
         StackPane stack = new StackPane();
 

@@ -24,7 +24,12 @@ import java.text.NumberFormat;
 
 /**
  * Controller pre dialóg permutácií / simulácie.
- * Zodpovedá za validáciu vstupov, spustenie simulácií na pozadí a prezentáciu reportu.
+ * Zodpovedá za validáciu vstupov, spustenie simulácií na pozadí (pomocou {@link Task})
+ * a prezentáciu reportu výsledkov používateľovi.
+ * Dôležité metódy a zodpovednosti:
+ * - validácia vstupov v {@link #validujVstupy()}
+ * - spustenie asynchrónnej simulácie v {@link #onSpustiButtonClick()}
+ * - zobrazenie výsledkov a export v {@link #onZobrazGrafClick()} a {@link #onExportReportClick()}
  */
 public class PermutationsController {
 
@@ -44,6 +49,9 @@ public class PermutationsController {
     private List<Integer> posledneRawData = new ArrayList<>();
     private Task<SimulationResult> currentTask;
 
+    /**
+     * Inicializácia kontroléra: nastavenie predvolených hodnôt formulárov a dostupných stratégií.
+     */
     @FXML
     public void initialize() {
         tfPocetVaznov.setText("100");
@@ -69,6 +77,10 @@ public class PermutationsController {
         validateVylucit();
     }
 
+    /**
+     * Validuje vstup pre pole "vylúčiť" a označí chybu pri neplatnom vstupe.
+     * Nastavuje aj vizuálne indikátory chyby.
+     */
     private void validateVylucit() {
         if (lblVylucitErr == null || tfVylucit == null || tfPocetVaznov == null) return;
         String text = tfVylucit.getText();
@@ -96,6 +108,10 @@ public class PermutationsController {
         }
     }
 
+    /**
+     * Spustí simuláciu po stlačení tlačidla. Validuje vstupy, nastaví vybranú stratégiu
+     * (vrátane parametrizácie pre {@link logic.ExclusionStrategy}) a spustí beh v pozadí.
+     */
     @FXML
     public void onSpustiButtonClick() {
         try {
@@ -180,6 +196,13 @@ public class PermutationsController {
         }
     }
 
+    /**
+     * Vytvorí textovú správu (report) so štatistikami z výsledku simulácie.
+     * @param r výsledok simulácie
+     * @param meno názov použitej stratégie
+     * @param p parametre simulácie
+     * @return textový report pripravený na zobrazenie alebo export
+     */
     private String generujReport(SimulationResult r, String meno, SimulationParams p) {
         List<Integer> data = (posledneRawData == null) ? Collections.emptyList() : new ArrayList<>(posledneRawData);
         double mean = r != null ? r.priemer : (data.stream().mapToInt(i -> i).average().orElse(0.0));
@@ -254,6 +277,12 @@ public class PermutationsController {
         return sb.toString();
     }
 
+    /**
+     * Vypočíta teoretickú percentuálnu šancu pre cyklickú stratégiu (približné percento bez simulácie).
+     * Používa kombinatorický výpočet založený na faktoriáloch.
+     * @param n počet väzňov
+     * @return teoretická úspešnosť v percentách
+     */
     private BigDecimal vypocitajTeoretickuPercent(int n) {
         if (n <= 0) return BigDecimal.ZERO;
         int m = n / 2;
@@ -273,6 +302,9 @@ public class PermutationsController {
         return new BigDecimal(p[n]).divide(new BigDecimal(fact[n]), new MathContext(10, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100));
     }
 
+    /**
+     * Uprace UI po skončení simulácie: zruší bindingy progressbaru a upraví viditeľnosť tlačidiel.
+     */
     private void finishUI() {
         if (progressBar.progressProperty().isBound()) progressBar.progressProperty().unbind();
         progressBar.setVisible(false);
@@ -281,8 +313,14 @@ public class PermutationsController {
         vboxVysledky.setVisible(true);
     }
 
+    /**
+     * Zrušenie bežiacej simulácie (volané z UI).
+     */
     @FXML public void onCancelButtonClick() { if (currentTask != null) currentTask.cancel(); }
 
+    /**
+     * Otvorí okno s grafmi výsledkov. Predá agregované dáta do {@link GraphController}.
+     */
     @FXML
     private void onZobrazGrafClick() {
         if (poslednyResult == null) return;
@@ -296,9 +334,14 @@ public class PermutationsController {
             s.setTitle("Grafické výsledky");
             s.setScene(new Scene(root));
             s.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            new Alert(Alert.AlertType.ERROR, "Nepodarilo sa načítať okno s grafmi: " + e.getMessage()).showAndWait();
+        }
     }
 
+    /**
+     * Export textového reportu do súboru.
+     */
     @FXML
     public void onExportReportClick() {
         if (txtReport == null) return;
@@ -308,23 +351,35 @@ public class PermutationsController {
         if (f == null) return;
         try (java.io.PrintWriter pw = new java.io.PrintWriter(f, java.nio.charset.StandardCharsets.UTF_8)) {
             pw.print(txtReport.getText());
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, "Chyba pri ukladaní reportu: " + ex.getMessage()).showAndWait();
+        }
     }
 
     @FXML public void onCloseButtonClick(ActionEvent e) { ((Stage)((Node)e.getSource()).getScene().getWindow()).close(); }
 
     private Strategy najdiStrategiu(String n) { return availableStrategies.stream().filter(s -> s.nazovStrategie().equals(n)).findFirst().orElse(null); }
 
+    /**
+     * Overuje a prevádza vstupy formulára na objekt {@link SimulationParams}.
+     * @return objekt parametrov alebo {@code null} pri neplatnom vstupe
+     */
     private SimulationParams validujVstupy() {
         try { return new SimulationParams(Integer.parseInt(tfPocetVaznov.getText()), Integer.parseInt(tfPocetPermutacii.getText())); }
         catch (Exception e) { return null; }
     }
 
+    /**
+     * Parametre simulácie (počet väzňov a počet permutácií).
+     */
     private static class SimulationParams {
         int pocetVaznov, permutations;
         SimulationParams(int p, int perm) { this.pocetVaznov = p; this.permutations = perm; }
     }
 
+    /**
+     * Výsledok simulácie s agregovanými štatistikami.
+     */
     private static class SimulationResult {
         double sancaPrezitia, priemer;
         int totalRuns;

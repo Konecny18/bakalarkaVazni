@@ -41,6 +41,10 @@ public class GraphController {
     private static final String FAIL_COLOR = "#e74c3c";    // Červená
     private static final String BIN_COLOR = "#e67e22";     // Oranžová
 
+    /**
+     * Inicializácia kontroléra: vyčistí grafy a nastaví počiatočné stavy.
+     * Volané automaticky JavaFX pri načítaní FXML.
+     */
     @FXML
     public void initialize() {
         if (pieSimulation != null) pieSimulation.getData().clear();
@@ -123,6 +127,10 @@ public class GraphController {
     }
 
 
+    /**
+     * Vytvorí a naplní histogram (bar chart) agregovanými výsledkami.
+     * Zabezpečí aj tooltipy pre jednotlivé stĺpce.
+     */
     private void populateHistogram(List<Integer> runs) {
         histogram.getData().clear();
         XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -172,6 +180,9 @@ public class GraphController {
         });
     }
 
+    /**
+     * Vypočíta štatistiky (priemer, medián, smerodajná odchýlka) a vypíše ich do štítkov.
+     */
     private void computeAndShowStats(List<Integer> runs) {
         int n = runs.size();
         IntSummaryStatistics stats = runs.stream().mapToInt(i -> i).summaryStatistics();
@@ -189,6 +200,9 @@ public class GraphController {
         lblMax.setText(String.format("🏆 Max. v jednej:     %d", stats.getMax()));
     }
 
+    /**
+     * Exportuje aktuálny pohľad (mainContainer) do PNG súboru; otvorí dialóg na uloženie.
+     */
     @FXML
     public void exportujDoPNG() {
         if (mainContainer == null) return;
@@ -242,6 +256,9 @@ public class GraphController {
         }
     }
 
+    /**
+     * Pomocná metóda na vykreslenie koláčového grafu: naplní dáta a aplikuje farby.
+     */
     private void populatePie(PieChart chart, double success) {
         chart.getData().clear();
         PieChart.Data sSlice = new PieChart.Data(String.format("Úspech (%.1f%%)", success), success);
@@ -251,6 +268,9 @@ public class GraphController {
         applySliceStyle(fSlice, FAIL_COLOR);
     }
 
+    /**
+     * Aplikuje požadované štýly na daný kúsoček koláčového grafu (pie slice).
+     */
     private void applySliceStyle(PieChart.Data slice, String color) {
         if (slice.getNode() != null) slice.getNode().setStyle("-fx-pie-color: " + color + ";");
         else slice.nodeProperty().addListener((o, old, n) -> { if (n != null) n.setStyle("-fx-pie-color: " + color + ";"); });
@@ -261,6 +281,9 @@ public class GraphController {
         ((javafx.stage.Stage)((Node)event.getSource()).getScene().getWindow()).close();
     }
 
+    /**
+     * Konvertuje JavaFX WritableImage na AWT BufferedImage (pre ImageIO export).
+     */
     private static BufferedImage fromFXImage(WritableImage img) {
         int width = (int) img.getWidth();
         int height = (int) img.getHeight();
